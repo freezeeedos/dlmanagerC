@@ -157,7 +157,7 @@ int getlist(const char *filename)
 	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+	//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 	pagefile = fopen(pagefilename, "wb");
 	if (pagefile) {
 	    curl_easy_setopt(curl, CURLOPT_FILE, pagefile);

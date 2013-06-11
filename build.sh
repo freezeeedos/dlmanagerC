@@ -1,1 +1,1 @@
-gcc -o dlmanager dlmanager.c -lcurl
+gcc -g -o dlmanager dlmanager.c -lcurl
