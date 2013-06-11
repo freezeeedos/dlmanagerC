@@ -199,8 +199,7 @@ int edit(const char *file)
     }
     if(retval == -1)
     {
-        fprintf("None of the listed text editors seem to be present
-                on this system.");
+        fprintf("None of the listed text editors seem to be present on this system.");
 	return -1;
     }
     return 0;
