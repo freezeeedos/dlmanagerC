@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     }
 
     getlist(listfilename);
+    unlink(listfilename);
     fprintf(stdout,"\n");
     return 0;
 }
@@ -75,7 +76,6 @@ static int progress(void *p,
     percentage = (dlnow/dltotal) * 100;
 //     fprintf(stdout, "UP: %g of %g  DOWN: %g of %g\n",
 // 	    ulnow, ultotal, dlnow, dltotal);
-    fprintf(stderr, "\r");
     if( percentage > 0)
     {
 	fprintf(stderr, "%d", percentage);
@@ -86,7 +86,8 @@ static int progress(void *p,
 	    fprintf(stderr, " ");
 	fprintf(stderr, "]");
     }
-    fflush(stdout);
+    fprintf(stderr, "\r");
+    fflush(stderr);
     return 0;
 }
 
@@ -131,7 +132,7 @@ int getlist(const char *filename)
     CURL *curl;
     FILE *listfile;
     FILE *pagefile;
-    char link[10000];
+    char *link = malloc(10000);
     char *pagefilename;
     struct myprogress prog;
     
@@ -153,6 +154,7 @@ int getlist(const char *filename)
 	prog.filename = pagefilename; 
 	fprintf(stdout, "Getting '%s':\n", pagefilename);
 	curl_easy_setopt(curl, CURLOPT_URL, link);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -164,9 +166,10 @@ int getlist(const char *filename)
 	    curl_easy_perform(curl);
 	    fclose(pagefile);
 	}
-    curl_easy_cleanup(curl);
+        fprintf(stdout, "\n");
     }
-
+    curl_easy_cleanup(curl);
+    
     return 0;
 }
 
