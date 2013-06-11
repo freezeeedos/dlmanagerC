@@ -178,23 +178,30 @@ int edit(const char *file)
     int i;
     int retval;
     char *my_cmd = NULL;
-    struct txteditors editors_a[2];
+    struct txteditors editors_a[5];
 
     editors_a[0].editor = "nano";
-    editors_a[1].editor = "vim";
+    editors_a[1].editor = "pico";
+    editors_a[2].editor = "vim";
+    editors_a[3].editor = "vi";
+    editors_a[4].editor = "emacs";
     
-    for(i=0;i<2;i++)
+    for(i=0;i<5;i++)
     {
 	my_cmd = strdup(editors_a[i].editor);
 	strcat(my_cmd, " ");
 	strcat(my_cmd, file);
 	
-	fprintf(stderr, "Trying %s\n", editors_a[i].editor);
+//	fprintf(stderr, "Trying %s\n", editors_a[i].editor);
 	retval = system(my_cmd);
 	if(retval != -1)
 	    break;
     }
     if(retval == -1)
+    {
+        fprintf("None of the listed text editors seem to be present
+                on this system.");
 	return -1;
+    }
     return 0;
 }
