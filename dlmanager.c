@@ -22,14 +22,15 @@ static int progress(void *p,
                     double dltotal, double dlnow,
                     double ultotal, double ulnow);
 char *getfilename(char *link);
-int getlist(const char *filename, CURL *curl);
+int getlist(const char *filename);
 int edit(const char *file);
 
 int main(int argc, char *argv[])
 {
-    CURL *curl;
     const char *listfilename = "/tmp/dlmanagerlist";
     int editval;
+    
+    curl_global_init(CURL_GLOBAL_ALL);
     
     editval = edit(listfilename);
     if(editval == -1)
@@ -38,9 +39,7 @@ int main(int argc, char *argv[])
 	return -1;
     }
 
-    curl_global_init(CURL_GLOBAL_ALL);
-    getlist(listfilename, curl);
-    curl_easy_cleanup(curl);
+    getlist(listfilename);
     fprintf(stdout,"\n");
     return 0;
 }
@@ -127,21 +126,27 @@ char *getfilename(char *link)
     return nameret;
 }
 
-int getlist(const char *filename, CURL *curl)
+int getlist(const char *filename)
 {
-//     CURL *curl;
-//     curl_global_init(CURL_GLOBAL_ALL);
+    CURL *curl;
     FILE *listfile;
     FILE *pagefile;
     char link[10000];
     char *pagefilename;
     struct myprogress prog;
-
-    curl = curl_easy_init();
-    prog.lastruntime = 0;
-    prog.curl = curl;
+    
 
     listfile = fopen(filename, "r");
+    if(listfile == NULL)
+    {
+        fprintf(stderr, "Failed to open list file.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    curl = curl_easy_init();
+
+    prog.lastruntime = 0;
+    prog.curl = curl;
     while(fgets(link, 10000, listfile) != NULL)
     {
 	pagefilename = getfilename(link);
@@ -152,12 +157,14 @@ int getlist(const char *filename, CURL *curl)
 	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 	pagefile = fopen(pagefilename, "wb");
 	if (pagefile) {
 	    curl_easy_setopt(curl, CURLOPT_FILE, pagefile);
 	    curl_easy_perform(curl);
 	    fclose(pagefile);
 	}
+    curl_easy_cleanup(curl);
     }
 
     return 0;
