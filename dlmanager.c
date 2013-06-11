@@ -78,16 +78,16 @@ static int progress(void *p,
 // 	    ulnow, ultotal, dlnow, dltotal);
     if( percentage > 0)
     {
-	fprintf(stderr, "%d", percentage);
-	fprintf(stderr, "%% [");
+	fprintf(stdout, "%d", percentage);
+	fprintf(stdout, "%% [");
 	for(dashes = 0;dashes+1<percentage;dashes++)
-	    fprintf(stderr,"-");
+	    fprintf(stdout,"-");
 	for(i=0;i<100-percentage;i++)
-	    fprintf(stderr, " ");
-	fprintf(stderr, "]");
+	    fprintf(stdout, " ");
+	fprintf(stdout, "]");
     }
-    fprintf(stderr, "\r");
-    fflush(stderr);
+    fprintf(stdout, "\r");
+    fflush(stdout);
     return 0;
 }
 
@@ -140,7 +140,7 @@ int getlist(const char *filename)
     listfile = fopen(filename, "r");
     if(listfile == NULL)
     {
-        fprintf(stderr, "Failed to open list file.\n");
+        perror("failed to open links list");
         exit(EXIT_FAILURE);
     }
 
@@ -163,7 +163,8 @@ int getlist(const char *filename)
 	pagefile = fopen(pagefilename, "wb");
 	if (pagefile) {
 	    curl_easy_setopt(curl, CURLOPT_FILE, pagefile);
-	    curl_easy_perform(curl);
+	    if(curl_easy_perform(curl) != 0)
+                perror("Download failed");
 	    fclose(pagefile);
 	}
         fprintf(stdout, "\n");
@@ -199,7 +200,7 @@ int edit(const char *file)
     }
     if(retval == -1)
     {
-        fprintf("None of the listed text editors seem to be present on this system.\n");
+        fprintf(stderr, "None of the listed text editors seem to be present on this system.\n");
 	return -1;
     }
     return 0;
