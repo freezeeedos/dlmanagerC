@@ -7,9 +7,9 @@
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     1
 
 struct myprogress {
-  double lastruntime;
-  CURL *curl;
-  char *filename;
+    double lastruntime;
+    CURL *curl;
+    char *filename;
 };
 
 struct txteditors
