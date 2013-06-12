@@ -47,7 +47,8 @@ int main(int argc, char *argv[])
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-  size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
+  size_t written = 0;
+  written = fwrite(ptr, size, nmemb, (FILE *)stream);
   return written;
 }
 
@@ -78,7 +79,7 @@ static int progress(void *p,
 // 	    ulnow, ultotal, dlnow, dltotal);
     if( percentage > 0)
     {
-	fprintf(stdout, "%d", percentage);
+	fprintf(stdout, " %d", percentage);
 	fprintf(stdout, "%% [");
 	for(dashes = 0;dashes+1<percentage;dashes++)
 	    fprintf(stdout,"-");
@@ -155,6 +156,7 @@ int getlist(const char *filename)
 	fprintf(stdout, "Getting '%s':\n", pagefilename);
 	curl_easy_setopt(curl, CURLOPT_URL, link);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -162,7 +164,7 @@ int getlist(const char *filename)
 	//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 	pagefile = fopen(pagefilename, "wb");
 	if (pagefile) {
-	    curl_easy_setopt(curl, CURLOPT_FILE, pagefile);
+	    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
 	    if(curl_easy_perform(curl) != 0)
                 perror("Download failed");
 	    fclose(pagefile);
