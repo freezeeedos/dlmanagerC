@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include <curl/curl.h>
-#define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     1
+#define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
 
 struct myprogress {
     double lastruntime;
@@ -14,7 +14,7 @@ struct myprogress {
 
 struct txteditors
 {
-    const char *editor;
+    char *editor;
 };
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream);
@@ -23,14 +23,18 @@ static int progress(void *p,
                     double ultotal, double ulnow);
 char *getfilename(char *link);
 int getlist(const char *filename);
+int getlink(char *link, struct myprogress prog, CURL *curl);
 int edit(const char *file);
+
+
+
+
 
 int main(int argc, char *argv[])
 {
     const char *listfilename = "/tmp/dlmanagerlist";
-    int editval;
+    int editval = 0;
     
-    curl_global_init(CURL_GLOBAL_ALL);
     
     editval = edit(listfilename);
     if(editval == -1)
@@ -45,13 +49,15 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+
+
+
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 {
   size_t written = 0;
   written = fwrite(ptr, size, nmemb, (FILE *)stream);
   return written;
 }
-
 
 static int progress(void *p,
 		    double dltotal, double dlnow,
@@ -61,22 +67,15 @@ static int progress(void *p,
     CURL *curl = myp->curl;
     double curtime = 0;
     char *filename = myp->filename;
-    int percentage;
-    int dashes;
-    int i;
+    int percentage = 0;
+    int dashes = 0;
+    int i = 0;
 
     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &curtime);
-
-    /* under certain circumstances it may be desirable for certain functionality
-	to only run every N seconds, in order to do this the transaction time can
-	be used */
     if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
 	myp->lastruntime = curtime;
-// 	fprintf(stdout, "TOTAL TIME: %f \n", curtime);
     }
     percentage = (dlnow/dltotal) * 100;
-//     fprintf(stdout, "UP: %g of %g  DOWN: %g of %g\n",
-// 	    ulnow, ultotal, dlnow, dltotal);
     if( percentage > 0)
     {
 	fprintf(stdout, " %d", percentage);
@@ -94,12 +93,12 @@ static int progress(void *p,
 
 char *getfilename(char *link)
 {
-    int i;
-    int j;
+    int i = 0;
+    int j = 0;
     int k = -1;
     int s = 0;
-    int mark;
-    int newlenght;
+    int mark = 0;
+    int newlenght = 0;
     char name[1000];
     char *nameret = NULL;
    
@@ -111,19 +110,13 @@ char *getfilename(char *link)
 	    mark = i;
 	}
     }
-//     printf("%d\n", i);
-//     printf("%d\n", s);
-//     printf("marker at %d\n", mark);
     newlenght = i - mark;
-//     printf("Newlenght is %d\n", newlenght);
     for(j=mark+1;j<i;j++)
     {
 	k++;
-// 	printf("name[%d] = link[%d]\n", k, j);
 	name[k] = link[j];
     }
     name[k] = '\0';
-//     printf("%s\n", name);
     nameret = name;
     return nameret;
 }
@@ -132,10 +125,9 @@ int getlist(const char *filename)
 {
     CURL *curl;
     FILE *listfile;
-    FILE *pagefile;
-    char *link = malloc(10000);
-    char *pagefilename;
     struct myprogress prog;
+    char line[1000];
+    char *url;
     
 
     listfile = fopen(filename, "r");
@@ -145,42 +137,52 @@ int getlist(const char *filename)
         exit(EXIT_FAILURE);
     }
 
+    curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
     prog.lastruntime = 0;
     prog.curl = curl;
-    while(fgets(link, 10000, listfile) != NULL)
+    while(fgets(line, 1000, listfile) != NULL)
     {
-	pagefilename = getfilename(link);
-	prog.filename = pagefilename; 
-	fprintf(stdout, "Getting '%s':\n", pagefilename);
-	curl_easy_setopt(curl, CURLOPT_URL, link);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
-	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-	//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-	pagefile = fopen(pagefilename, "wb");
-	if (pagefile) {
-	    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
-	    if(curl_easy_perform(curl) != 0)
-                perror("Download failed");
-	    fclose(pagefile);
-	}
-        fprintf(stdout, "\n");
+	url = line;
+	getlink(url, prog, curl);
     }
     curl_easy_cleanup(curl);
-    
     return 0;
+}
+
+int getlink(char *link, struct myprogress prog, CURL *curl)
+{
+    FILE *pagefile;
+    char *pagefilename;
+    
+    pagefilename = getfilename(link);
+    prog.filename = pagefilename; 
+    fprintf(stdout, "Getting '%s':\n", pagefilename);
+    curl_easy_setopt(curl, CURLOPT_URL, link);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+    pagefile = fopen(pagefilename, "w");
+    if (pagefile) 
+    {
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
+	if(curl_easy_perform(curl) != 0)
+	    perror("Download failed");
+	fclose(pagefile);
+    }
+    fprintf(stdout, "\n");
 }
 
 int edit(const char *file)
 {
-    int i;
-    int retval;
-    char *my_cmd = NULL;
+    int i = 0;
+    int retval = 0;
+    char *my_cmd;
     struct txteditors editors_a[5];
 
     editors_a[0].editor = "nano";
@@ -191,6 +193,7 @@ int edit(const char *file)
     
     for(i=0;i<5;i++)
     {
+	//my_cmd = malloc(sizeof(editors_a[i].editor)+sizeof(" "+1)+sizeof(file+1));
 	my_cmd = strdup(editors_a[i].editor);
 	strcat(my_cmd, " ");
 	strcat(my_cmd, file);
@@ -199,6 +202,7 @@ int edit(const char *file)
 	retval = system(my_cmd);
 	if(retval != -1)
 	    break;
+	//free(my_cmd);
     }
     if(retval == -1)
     {
