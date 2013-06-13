@@ -126,6 +126,8 @@ int getlist(const char *filename)
     struct myprogress prog;
     char line[1000];
     char *url;
+    int ret;
+    int i;
     
 
     listfile = fopen(filename, "r");
@@ -143,7 +145,16 @@ int getlist(const char *filename)
     while(fgets(line, 1000, listfile) != NULL)
     {
 	url = line;
-	getlink(url, prog, curl);
+	ret = getlink(url, prog, curl);
+	if(ret == -1)
+	{
+            for(i=0;i<50;i++)
+	    {
+	        sleep(1);
+                fprintf(stderr, "Try %d:\n", (i+1));
+                getlink(url, prog, curl);
+	    }
+	}
     }
     curl_easy_cleanup(curl);
     return 0;
@@ -153,6 +164,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl)
 {
     FILE *pagefile;
     char *pagefilename;
+    int i;
     
     pagefilename = getfilename(link);
     prog.filename = pagefilename; 
@@ -170,10 +182,15 @@ int getlink(char *link, struct myprogress prog, CURL *curl)
     {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
 	if(curl_easy_perform(curl) != 0)
+	{
 	    perror("Download failed");
+	    return -1;
+	}
+	
 	fclose(pagefile);
     }
     fprintf(stdout, "\n");
+    return 0;
 }
 
 int edit(const char *file)
