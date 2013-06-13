@@ -184,7 +184,8 @@ int getlink(char *link, struct myprogress prog, CURL *curl)
 	if(curl_easy_perform(curl) != 0)
 	{
 	    perror("Download failed");
-            unlink(pagefile);
+            fclose(pagefile);
+            unlink(pagefilename);
 	    return -1;
 	}
 	
