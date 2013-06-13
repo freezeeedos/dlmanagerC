@@ -152,7 +152,9 @@ int getlist(const char *filename)
 	    {
 	        sleep(1);
                 fprintf(stderr, "[Try %d]\n", (i+1));
-                getlink(url, prog, curl);
+                ret = getlink(url, prog, curl);
+                if(ret == 0)
+                    break;
 	    }
 	}
     }
