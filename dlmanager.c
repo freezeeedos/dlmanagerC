@@ -151,7 +151,7 @@ int getlist(const char *filename)
             for(i=0;i<50;i++)
 	    {
 	        sleep(1);
-                fprintf(stderr, "Try %d:\n", (i+1));
+                fprintf(stderr, "[Try %d]\n", (i+1));
                 getlink(url, prog, curl);
 	    }
 	}
@@ -184,6 +184,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl)
 	if(curl_easy_perform(curl) != 0)
 	{
 	    perror("Download failed");
+            unlink(pagefile);
 	    return -1;
 	}
 	
