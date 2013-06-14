@@ -83,21 +83,26 @@ static int progress(void *p,
     kbtotal = dltotal / 1000;
     mbnow = kbnow / 1000;
     mbtotal = kbtotal / 1000;
-    if( percentage > 0)
-    {
-	fprintf(stdout, " %d", percentage);
-	fprintf(stdout, "%% [");
-	for(dashes = 0;dashes+1<percentage;dashes++)
-	    fprintf(stdout,"-");
-	for(i=0;i<100-percentage;i++)
-	    fprintf(stdout, " ");
-        if(kbnow < 1000)
-            fprintf(stdout, "] %f/%f kB", kbnow,kbtotal);
-        if(kbnow > 1000)
-            fprintf(stdout, "] %f/%f mB    ", mbnow,mbtotal);//this is ugly.
-    }
-    fprintf(stdout, "\r");
+    
     fflush(stdout);
+    if(percentage < 0)
+        percentage = 0;
+    if( percentage < 10)
+	fprintf(stdout, "  %d", percentage);
+    if((percentage > 9) && (percentage < 100))
+        fprintf(stdout, " %d", percentage);
+    if(percentage > 99)
+        fprintf(stdout, "%d", percentage);
+    fprintf(stdout, "%% [");
+    for(dashes = 0;dashes+1<percentage;dashes++)
+        fprintf(stdout,"-");
+    for(i=0;i<100-percentage;i++)
+        fprintf(stdout, " ");
+    if(kbtotal < 1000)
+        fprintf(stdout, "] %f/%f kB", kbnow,kbtotal);
+    if(kbtotal > 1000)
+        fprintf(stdout, "] %f/%f mB", mbnow,mbtotal);//this is ugly.
+    fprintf(stdout, "\r");
     return 0;
 }
 
