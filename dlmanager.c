@@ -64,6 +64,10 @@ static int progress(void *p,
     struct myprogress *myp = (struct myprogress *)p;
     CURL *curl = myp->curl;
     double curtime = 0;
+    double kbnow = 0;
+    double kbtotal = 0;
+    double mbnow = 0;
+    double mbtotal = 0;
     char *filename = myp->filename;
     int percentage = 0;
     int dashes = 0;
@@ -73,7 +77,12 @@ static int progress(void *p,
     if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
 	myp->lastruntime = curtime;
     }
+    
     percentage = (dlnow/dltotal) * 100;
+    kbnow = dlnow / 1000;
+    kbtotal = dltotal / 1000;
+    mbnow = kbnow / 1000;
+    mbtotal = kbtotal / 1000;
     if( percentage > 0)
     {
 	fprintf(stdout, " %d", percentage);
@@ -82,7 +91,10 @@ static int progress(void *p,
 	    fprintf(stdout,"-");
 	for(i=0;i<100-percentage;i++)
 	    fprintf(stdout, " ");
-	fprintf(stdout, "]");
+        if(kbnow < 1000)
+            fprintf(stdout, "] %f/%f kB", kbnow,kbtotal);
+        if(kbnow > 1000)
+            fprintf(stdout, "] %f/%f mB    ", mbnow,mbtotal);
     }
     fprintf(stdout, "\r");
     fflush(stdout);
