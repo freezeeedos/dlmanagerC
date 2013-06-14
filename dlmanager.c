@@ -98,6 +98,7 @@ static int progress(void *p,
         fprintf(stdout,"-");
     for(i=0;i<100-percentage;i++)
         fprintf(stdout, " ");
+//display directly the appropriate unit
     if(kbtotal < 1000)
         fprintf(stdout, "] %f/%f kB", kbnow,kbtotal);
     if(kbtotal > 1000)
