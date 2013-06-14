@@ -101,7 +101,7 @@ static int progress(void *p,
     if(kbtotal < 1000)
         fprintf(stdout, "] %f/%f kB", kbnow,kbtotal);
     if(kbtotal > 1000)
-        fprintf(stdout, "] %f/%f mB", mbnow,mbtotal);//this is ugly.
+        fprintf(stdout, "] %f/%f mB", mbnow,mbtotal);
     fprintf(stdout, "\r");
     return 0;
 }
