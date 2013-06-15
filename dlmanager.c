@@ -23,7 +23,7 @@ static int progress(void *p,
                     double ultotal, double ulnow);
 char *getfilename(char *link);
 int getlist(const char *filename);
-int getlink(char *link, struct myprogress prog, CURL *curl);
+int getlink(char *link, struct myprogress prog, CURL *curl, int ntry);
 int edit(const char *file);
 
 
@@ -145,7 +145,7 @@ int getlist(const char *filename)
     char line[1000];
     char *url;
     int ret;
-    int i;
+    int i = 0;
     
 
     listfile = fopen(filename, "r");
@@ -163,14 +163,14 @@ int getlist(const char *filename)
     while(fgets(line, 1000, listfile) != NULL)
     {
 	url = line;
-	ret = getlink(url, prog, curl);
+	ret = getlink(url, prog, curl, i);
 	if(ret == -1)
 	{
-            for(i=0;i<50;i++)
+            for(i=1;i<51;i++)
 	    {
 	        sleep(1);
-                fprintf(stderr, "[Try %d]\n", (i+1));
-                ret = getlink(url, prog, curl);
+                fprintf(stderr, "[Try %d]\r", (i+1));
+                ret = getlink(url, prog, curl, i);
                 if(ret == 0)
                     break;
 	    }
@@ -180,15 +180,16 @@ int getlist(const char *filename)
     return 0;
 }
 
-int getlink(char *link, struct myprogress prog, CURL *curl)
+int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
     int i;
     
     pagefilename = getfilename(link);
-    prog.filename = pagefilename; 
-    fprintf(stdout, "Getting '%s':\n", pagefilename);
+    prog.filename = pagefilename;
+    if(ntry == 0)
+        fprintf(stdout, "Getting '%s':\n", pagefilename);
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -203,7 +204,8 @@ int getlink(char *link, struct myprogress prog, CURL *curl)
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
 	if(curl_easy_perform(curl) != 0)
 	{
-	    perror("Download failed");
+            if(ntry == 50)
+                perror("Download failed");
             fclose(pagefile);
             unlink(pagefilename);
 	    return -1;
