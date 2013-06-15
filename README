@@ -1,1 +1,1 @@
-Download manager written in C/LibCURL.
+Download manager written in C/LibCURL. It open a file in a text editor, and downloads the links you paste in it.
