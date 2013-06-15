@@ -28,9 +28,6 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry);
 int edit(const char *file);
 
 
-
-
-
 int main(int argc, char *argv[])
 {
     const char *listfilename = "/tmp/dlmanagerlist";
@@ -101,9 +98,9 @@ static int progress(void *p,
         fprintf(stdout, " ");
 //display directly the appropriate unit
     if(kbtotal < 1000)
-        fprintf(stdout, "] %f/%f kB", kbnow,kbtotal);
+        fprintf(stdout, "] %f/%f kB ", kbnow,kbtotal);
     if(kbtotal > 1000)
-        fprintf(stdout, "] %f/%f mB", mbnow,mbtotal);
+        fprintf(stdout, "] %f/%f mB ", mbnow,mbtotal);
     fprintf(stdout, "\r");
     return 0;
 }
@@ -188,8 +185,10 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     char *pagefilename;
     int i;
     
+    
     pagefilename = getfilename(link);
     prog.filename = pagefilename;
+
     if(ntry == 0)
         fprintf(stdout, "Getting '%s':\n", pagefilename);
     curl_easy_setopt(curl, CURLOPT_URL, link);
