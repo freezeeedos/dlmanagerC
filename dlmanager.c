@@ -5,6 +5,7 @@
 
 #include <curl/curl.h>
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
+#define NTRYMAX 5
 
 struct myprogress {
     double lastruntime;
@@ -163,10 +164,11 @@ int getlist(const char *filename)
     while(fgets(line, 1000, listfile) != NULL)
     {
 	url = line;
+        i = 0;
 	ret = getlink(url, prog, curl, i);
 	if(ret == -1)
 	{
-            for(i=1;i<51;i++)
+            for(i=1;i<NTRYMAX+1;i++)
 	    {
 	        sleep(1);
                 fprintf(stderr, "[Try %d]\r", (i+1));
@@ -204,11 +206,14 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
 	if(curl_easy_perform(curl) != 0)
 	{
-            if(ntry == 50)
+            if(ntry == NTRYMAX)
+            {
                 perror("Download failed");
-            fclose(pagefile);
-            unlink(pagefilename);
-	    return -1;
+//                 fprintf(stdout, "\n");
+                fclose(pagefile);
+                unlink(pagefilename);
+            }
+            return -1;
 	}
 	
 	fclose(pagefile);
