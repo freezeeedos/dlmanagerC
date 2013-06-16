@@ -203,16 +203,23 @@ int getlist(const char *filename)
     }
     curl_easy_cleanup(curl);
     fclose(listfile);
-    listfile = fopen(filename, "w");
-    for(i=1;i<fail+1;i++)
+    unlink(filename);
+    
+    if(fail != 0)
     {
-        if(i == 1)
-            fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n");
-        
-        fprintf(stderr, "failed: %s", failed[i].link);
-        fprintf(listfile, "%s", failed[i].link);
+        listfile = fopen(filename, "w");
+        for(i=1;i<fail+1;i++)
+        {
+            if(i == 1)
+                fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n");
+            
+            fprintf(stderr, "failed: %s", failed[i].link);
+            fprintf(listfile, "%s", failed[i].link);
+        }
+        fclose(listfile);
+        return -1;
     }
-    fclose(listfile);
+    
     return 0;
 }
 
