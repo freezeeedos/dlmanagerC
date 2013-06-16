@@ -18,6 +18,16 @@ struct txteditors
     char *editor;
 };
 
+struct failures
+{
+    char *link;
+};
+
+struct completed
+{
+    char *link;
+};
+
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream);
 static int progress(void *p,
                     double dltotal, double dlnow,
@@ -42,7 +52,7 @@ int main(int argc, char *argv[])
     }
 
     getlist(listfilename);
-    unlink(listfilename);
+//     unlink(listfilename);
     fprintf(stdout,"\n");
     return 0;
 }
@@ -140,10 +150,14 @@ int getlist(const char *filename)
     CURL *curl;
     FILE *listfile;
     struct myprogress prog;
+    struct failures failed[1000];
+    struct completed complete[1000];
     char line[1000];
     char *url;
     int ret;
     int i = 0;
+    int ok = 0;
+    int fail = 0;
     
 
     listfile = fopen(filename, "r");
@@ -171,11 +185,34 @@ int getlist(const char *filename)
                 fprintf(stderr, "[Try %d]\r", (i+1));
                 ret = getlink(url, prog, curl, i);
                 if(ret == 0)
+                {
                     break;
+                }
+                if((ret == -1) && (i == NTRYMAX))
+                {
+                    fail++;
+                    failed[fail].link = line;
+                }
 	    }
 	}
+	else
+        {
+            ok++;
+            complete[ok].link = line;          
+        }
     }
     curl_easy_cleanup(curl);
+    fclose(listfile);
+    listfile = fopen(filename, "w");
+    for(i=1;i<fail+1;i++)
+    {
+        if(i == 1)
+            fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n");
+        
+        fprintf(stderr, "failed: %s", failed[i].link);
+        fprintf(listfile, "%s", failed[i].link);
+    }
+    fclose(listfile);
     return 0;
 }
 
