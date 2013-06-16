@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
 {
     const char *listfilename = "/tmp/dlmanagerlist";
     int editval = 0;
+    int getval = 0;
     
     
     editval = edit(listfilename);
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
 	return -1;
     }
 
-    getlist(listfilename);
+    getval = getlist(listfilename);
 //     unlink(listfilename);
     fprintf(stdout,"\n");
     return 0;
