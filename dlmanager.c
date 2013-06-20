@@ -88,13 +88,6 @@ static int progress(void *p,
 	myp->lastruntime = curtime;
     }
     
-//     if(existsize > 0)
-//     {
-//         dltotal = dltotal + existsize;
-//         dlnow = existsize;
-//         existsize = 0;
-//     }
-    
     percentage = (dlnow/dltotal) * 100;
     kbnow = dlnow / 1000;
     kbtotal = dltotal / 1000;
@@ -255,16 +248,16 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
     if((stat(pagefilename, &statbuf) == 0))
     {
-        double existsize = (double)statbuf.st_size;
-        long kbsize = (long)existsize / 1000;
-        long mbsize = kbsize / 1000;
+        double existsize = statbuf.st_size;
+        double kbsize = existsize / 1000;
+        double mbsize = kbsize / 1000;
         
         pagefile = fopen(pagefilename, "a+");
         if(kbsize < 1000)
-            printf("downloaded: %ld kB\n", kbsize);
+            printf("downloaded: %f kB\n", kbsize);
         if(kbsize > 1000)
-            printf("downloaded: %ld mB\n", mbsize);
-        curl_easy_setopt(curl, CURLOPT_RESUME_FROM , existsize);
+            printf("downloaded: %f mB\n", mbsize);
+        curl_easy_setopt(curl, CURLOPT_RESUME_FROM , statbuf.st_size);
     }
     else
     {
