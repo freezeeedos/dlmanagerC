@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <curl/curl.h>
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
@@ -86,6 +87,13 @@ static int progress(void *p,
     if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
 	myp->lastruntime = curtime;
     }
+    
+//     if(existsize > 0)
+//     {
+//         dltotal = dltotal + existsize;
+//         dlnow = existsize;
+//         existsize = 0;
+//     }
     
     percentage = (dlnow/dltotal) * 100;
     kbnow = dlnow / 1000;
@@ -229,6 +237,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     FILE *pagefile;
     char *pagefilename;
     int i;
+    struct stat statbuf;
     
     
     pagefilename = getfilename(link);
@@ -244,7 +253,25 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-    pagefile = fopen(pagefilename, "w");
+    if((stat(pagefilename, &statbuf) == 0))
+    {
+        double existsize = (double)statbuf.st_size;
+        long kbsize = (long)existsize / 1000;
+        long mbsize = kbsize / 1000;
+        
+        pagefile = fopen(pagefilename, "a+");
+        if(kbsize < 1000)
+            printf("downloaded: %ld kB\n", kbsize);
+        if(kbsize > 1000)
+            printf("downloaded: %ld mB\n", mbsize);
+        curl_easy_setopt(curl, CURLOPT_RESUME_FROM , existsize);
+    }
+    else
+    {
+//         existsize = 0;
+        curl_easy_setopt(curl, CURLOPT_RESUME_FROM , 0);
+        pagefile = fopen(pagefilename, "w");
+    }
     if (pagefile) 
     {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
