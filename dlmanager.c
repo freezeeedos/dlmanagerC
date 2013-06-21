@@ -146,7 +146,7 @@ char *getfilename(CURL *curl, char *link)
     }
     name[k] = '\0';
     nameret = name;
-    curl_easy_unescape( curl , nameret , sizeof(nameret) , 0 );
+    nameret = curl_easy_unescape( curl , name , 0 , 0 );
     return nameret;
 }
 
