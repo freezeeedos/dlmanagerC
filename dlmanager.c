@@ -8,6 +8,7 @@
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
 #define NTRYMAX 5
 
+
 struct myprogress {
     double lastruntime;
     CURL *curl;
@@ -33,7 +34,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream);
 static int progress(void *p,
                     double dltotal, double dlnow,
                     double ultotal, double ulnow);
-char *getfilename(char *link);
+char *getfilename(CURL *curl, char *link);
 int getlist(const char *filename);
 int getlink(char *link, struct myprogress prog, CURL *curl, int ntry);
 int edit(const char *file);
@@ -82,6 +83,7 @@ static int progress(void *p,
     int percentage = 0;
     int dashes = 0;
     int i = 0;
+    
 
     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &curtime);
     if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
@@ -117,12 +119,12 @@ static int progress(void *p,
     return 0;
 }
 
-char *getfilename(char *link)
+char *getfilename(CURL *curl, char *link)
 {
     int i = 0;
     int j = 0;
     int k = -1;
-    int s = 0;
+//     int s = 0;
     int mark = 0;
     int newlenght = 0;
     char name[1000];
@@ -132,7 +134,7 @@ char *getfilename(char *link)
     {
 	if(link[i] == '/')
 	{
-	    s++;
+// 	    s++;
 	    mark = i;
 	}
     }
@@ -144,6 +146,7 @@ char *getfilename(char *link)
     }
     name[k] = '\0';
     nameret = name;
+    curl_easy_unescape( curl , nameret , sizeof(nameret) , 0 );
     return nameret;
 }
 
@@ -230,10 +233,13 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     FILE *pagefile;
     char *pagefilename;
     int i;
+    int ret;
+    double existsize = 0;
+    double dlenght = 0;
     struct stat statbuf;
     
     
-    pagefilename = getfilename(link);
+    pagefilename = getfilename(curl, link);
     prog.filename = pagefilename;
 
     if(ntry == 0)
@@ -248,7 +254,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
     if((stat(pagefilename, &statbuf) == 0))
     {
-        double existsize = statbuf.st_size;
+        existsize = statbuf.st_size;
         double kbsize = existsize / 1000;
         double mbsize = kbsize / 1000;
         
@@ -257,6 +263,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
             printf("downloaded: %f kB\n", kbsize);
         if(kbsize > 1000)
             printf("downloaded: %f mB\n", mbsize);
+        
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM , statbuf.st_size);
     }
     else
@@ -268,7 +275,17 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     if (pagefile) 
     {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
-	if(curl_easy_perform(curl) != 0)
+        ret = curl_easy_perform(curl);
+        
+        curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
+        printf("lenght: %f\n", dlenght);
+        if((existsize > 0) && (dlenght == 0))
+        {
+            fprintf(stderr, "file already complete\n");
+            return 0;
+        }
+        
+	if(ret != 0)
 	{
             if(ntry == NTRYMAX)
             {
@@ -279,6 +296,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
             }
             return -1;
 	}
+	
 	
 	fclose(pagefile);
     }
