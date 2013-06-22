@@ -279,7 +279,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         
         curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 //         printf("lenght: %f\n", dlenght);
-        if((existsize > 0) && (dlenght == 0))
+        if((existsize != 0) && (dlenght == 0))
         {
             fprintf(stderr, "file already complete\n");
             fclose(pagefile);
