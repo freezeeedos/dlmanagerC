@@ -82,6 +82,8 @@ static int progress(void *p,
     double kbtotal = 0;
     double mbnow = 0;
     double mbtotal = 0;
+    double gbnow = 0;
+    double gbtotal = 0;
     char *filename = myp->filename;
     int percentage = 0;
     int dashes = 0;
@@ -98,6 +100,8 @@ static int progress(void *p,
     kbtotal = dltotal / 1000;
     mbnow = kbnow / 1000;
     mbtotal = kbtotal / 1000;
+    gbnow = mbnow / 1000;
+    gbtotal = mbtotal / 1000;
     
     fflush(stdout);
     if(percentage < 0)
@@ -116,8 +120,10 @@ static int progress(void *p,
 //display directly the appropriate unit
     if(kbtotal < 1000)
         fprintf(stdout, "] %f/%f kB ", kbnow,kbtotal);
-    if(kbtotal > 1000)
+    if((kbtotal > 1000) && (mbtotal < 1000))
         fprintf(stdout, "] %f/%f mB ", mbnow,mbtotal);
+    if(mbtotal > 1000)
+        fprintf(stdout, "] %f/%f GB ", gbnow,gbtotal);
     fprintf(stdout, "\r");
     return 0;
 }
@@ -260,12 +266,16 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         existsize = statbuf.st_size;
         double kbsize = existsize / 1000;
         double mbsize = kbsize / 1000;
+        double gbsize = mbsize / 1000;
         
         pagefile = fopen(pagefilename, "a+");
+        printf("Already downloaded: ");
         if(kbsize < 1000)
-            printf("downloaded: %f kB\n", kbsize);
-        if(kbsize > 1000)
-            printf("downloaded: %f mB\n", mbsize);
+            printf("%f kB\n", kbsize);
+        if((kbsize > 1000) && (mbsize < 1000))
+            printf("%f mB\n", mbsize);
+        if(mbsize > 1000)
+            printf("%f GB\n", gbsize);
         
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM , statbuf.st_size);
     }
