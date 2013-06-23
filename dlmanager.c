@@ -9,7 +9,7 @@
 
 #include <curl/curl.h>
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
-#define NTRYMAX 5
+#define NTRYMAX 50
 
 
 struct myprogress {
@@ -277,17 +277,22 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     }
     if (pagefile) 
     {
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
-        ret = curl_easy_perform(curl);
-        
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
+        ret = curl_easy_perform(curl);        
         curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
-//         printf("lenght: %f\n", dlenght);
-        if((existsize != 0) && (dlenght == 0))
+
+        if((existsize != 0) && (dlenght == 0) && (ret != 0))
         {
-            fprintf(stderr, "file already complete\n");
+//             fflush(stdout);
+            fprintf(stdout, "\nfile already complete\n");
             fclose(pagefile);
             return 0;
         }
+//         else
+//         {
+//             if(existsize != 0)
+//                 fprintf(stdout, "%f remaining\n", dlenght);
+//         }
         
 	if(ret != 0)
 	{
