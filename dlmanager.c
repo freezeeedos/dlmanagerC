@@ -309,9 +309,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
             if(ntry == NTRYMAX)
             {
                 perror("Download failed");
-//                 fprintf(stdout, "\n");
                 fclose(pagefile);
-                unlink(pagefilename);
             }
             return -1;
 	}
