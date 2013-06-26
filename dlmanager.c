@@ -269,13 +269,16 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         double gbsize = mbsize / 1000;
         
         pagefile = fopen(pagefilename, "a+");
-        printf("Already downloaded: ");
-        if(kbsize < 1000)
-            printf("%f kB\n", kbsize);
-        if((kbsize > 1000) && (mbsize < 1000))
-            printf("%f mB\n", mbsize);
-        if(mbsize > 1000)
-            printf("%f GB\n", gbsize);
+        if(ntry == 0)
+        {
+            printf("Already downloaded: ");
+            if(kbsize < 1000)
+                printf("%f kB\n", kbsize);
+            if((kbsize > 1000) && (mbsize < 1000))
+                printf("%f mB\n", mbsize);
+            if(mbsize > 1000)
+                printf("%f GB\n", gbsize);
+        }
         
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM , statbuf.st_size);
     }
