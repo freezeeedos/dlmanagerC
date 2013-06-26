@@ -253,14 +253,15 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
 
     if(ntry == 0)
         fprintf(stdout, "Getting '%s':\n", pagefilename);
+
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+
     if((stat(pagefilename, &statbuf) == 0))
     {
         existsize = statbuf.st_size;
@@ -294,7 +295,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         ret = curl_easy_perform(curl);        
         curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 
-        if((existsize != 0) && (dlenght == 0) && (ret != 0))
+        if((existsize != 0) && (dlenght == 0) && (ret == 33))
         {
 //             fflush(stdout);
             fprintf(stdout, "\nfile already complete\n");
