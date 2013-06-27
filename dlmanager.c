@@ -33,13 +33,17 @@ struct completed
     char *link;
 };
 
-static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream);
+static size_t write_data(void *ptr, 
+                         size_t size, 
+                         size_t nmemb, void *stream);
 static int progress(void *p,
                     double dltotal, double dlnow,
                     double ultotal, double ulnow);
 char *getfilename(CURL *curl, char *link);
 int getlist(const char *filename);
-int getlink(char *link, struct myprogress prog, CURL *curl, int ntry);
+int getlink(char *link, 
+            struct myprogress 
+            prog, CURL *curl, int ntry);
 int edit(const char *file);
 
 
@@ -58,7 +62,6 @@ int main(int argc, char *argv[])
     }
 
     getval = getlist(listfilename);
-//     unlink(listfilename);
     fprintf(stdout,"\n");
     return 0;
 }
@@ -133,7 +136,6 @@ char *getfilename(CURL *curl, char *link)
     int i = 0;
     int j = 0;
     int k = -1;
-//     int s = 0;
     int mark = 0;
     int newlenght = 0;
     char name[1000];
@@ -143,7 +145,6 @@ char *getfilename(CURL *curl, char *link)
     {
 	if(link[i] == '/')
 	{
-// 	    s++;
 	    mark = i;
 	}
     }
@@ -154,7 +155,6 @@ char *getfilename(CURL *curl, char *link)
 	name[k] = link[j];
     }
     name[k] = '\0';
-//     nameret = name;
     nameret = curl_easy_unescape( curl , name , 0 , 0 );
     return nameret;
 }
@@ -285,7 +285,6 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     }
     else
     {
-//         existsize = 0;
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM , 0);
         pagefile = fopen(pagefilename, "w");
     }
@@ -297,16 +296,10 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
 
         if((existsize != 0) && (dlenght == 0) && (ret == 33))
         {
-//             fflush(stdout);
             fprintf(stdout, "\nfile already complete\n");
             fclose(pagefile);
             return 0;
         }
-//         else
-//         {
-//             if(existsize != 0)
-//                 fprintf(stdout, "%f remaining\n", dlenght);
-//         }
         
 	if(ret != 0)
 	{
@@ -340,20 +333,17 @@ int edit(const char *file)
     
     for(i=0;i<5;i++)
     {
-	//my_cmd = malloc(sizeof(editors_a[i].editor)+sizeof(" "+1)+sizeof(file+1));
 	my_cmd = strdup(editors_a[i].editor);
 	strcat(my_cmd, " ");
 	strcat(my_cmd, file);
 	
-//	fprintf(stderr, "Trying %s\n", editors_a[i].editor);
 	retval = system(my_cmd);
 	if(retval != -1)
 	    break;
-	//free(my_cmd);
     }
     if(retval == -1)
     {
-        fprintf(stderr, "None of the listed text editors seem to be present on this system.\n");
+        fprintf(stderr, "None of the text editors I tried seem to be present on this system.\n");
 	return -1;
     }
     return 0;
