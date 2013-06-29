@@ -43,7 +43,6 @@ static int progress(void *p,
     {
     struct myprogress *myp = (struct myprogress *)p;
     CURL *curl = myp->curl;
-    double curtime = 0;
     double kbnow = 0;
     double kbtotal = 0;
     double mbnow = 0;
@@ -56,10 +55,6 @@ static int progress(void *p,
     int i = 0;
     
 
-    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &curtime);
-    if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
-	myp->lastruntime = curtime;
-    }
     
     percentage = (dlnow/dltotal) * 100;
     kbnow = dlnow / 1000;
