@@ -251,17 +251,19 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
         ret = curl_easy_perform(curl);
 //        printf("%d\n", ret);
-        switch(ret):
+        switch(ret)
+        {
             case 3:
-                fprintf("Badly formatted URL.Ignoring...\n");
+                fprintf(stderr, "Badly formatted URL.Ignoring...\n");
                 return 0;
                 break;
             case 1:
-                fprintf("Unsupported protocol.Ignoring...\n");
+                fprintf(stderr, "Unsupported protocol.Ignoring...\n");
                 return 0;
                 break;
             default:
                 break;
+        }
         curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 
         if((existsize != 0) && (dlenght == 0) && (ret == 33))
