@@ -250,7 +250,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     {
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
         ret = curl_easy_perform(curl);
-//        printf("%d\n", ret);
+        //printf("%d\n", ret);
         switch(ret)
         {
             case 3:
@@ -294,7 +294,7 @@ int edit(const char *file)
 {
     int i = 0;
     int retval = 0;
-    char *my_cmd;
+    char my_cmd[256];
     struct txteditors editors_a[5];
 
     editors_a[0].editor = "nano";
@@ -305,9 +305,7 @@ int edit(const char *file)
     
     for(i=0;i<5;i++)
     {
-	my_cmd = strdup(editors_a[i].editor);
-	strcat(my_cmd, " ");
-	strcat(my_cmd, file);
+        sprintf(my_cmd, "%s %s", editors_a[i].editor, file);
 	
 	retval = system(my_cmd);
 	if(retval != -1)
