@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
     editval = edit(listfilename);
     if(editval == -1)
     {
-	fprintf(stderr, "unable to open file for edition.\n");
-	return -1;
+        fprintf(stderr, "unable to open file for edition.\n");
+        return -1;
     }
 
     getval = getlist(listfilename);
@@ -32,15 +32,15 @@ int main(int argc, char *argv[])
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-  size_t written = 0;
-  written = fwrite(ptr, size, nmemb, (FILE *)stream);
-  return written;
+    size_t written = 0;
+    written = fwrite(ptr, size, nmemb, (FILE *)stream);
+    return written;
 }
 
 static int progress(void *p,
 		    double dltotal, double dlnow,
 		    double ultotal, double ulnow)
-    {
+{
     struct myprogress *myp = (struct myprogress *)p;
     CURL *curl = myp->curl;
     double kbnow = 0;
@@ -57,12 +57,12 @@ static int progress(void *p,
 
     
     percentage = (dlnow/dltotal) * 100;
-    kbnow = dlnow / 1000;
-    kbtotal = dltotal / 1000;
-    mbnow = kbnow / 1000;
-    mbtotal = kbtotal / 1000;
-    gbnow = mbnow / 1000;
-    gbtotal = mbtotal / 1000;
+    kbnow = dlnow / 1024;
+    kbtotal = dltotal / 1024;
+    mbnow = kbnow / 1024;
+    mbtotal = kbtotal / 1024;
+    gbnow = mbnow / 1024;
+    gbtotal = mbtotal / 1024;
     
     fflush(stdout);
     if(percentage < 0)
@@ -79,11 +79,11 @@ static int progress(void *p,
     for(i=0;i<100-percentage;i++)
         fprintf(stdout, " ");
 //display directly the appropriate unit
-    if(kbtotal < 1000)
+    if(kbtotal < 1024)
         fprintf(stdout, "] %f/%f kB ", kbnow,kbtotal);
-    if((kbtotal > 1000) && (mbtotal < 1000))
+    if((kbtotal > 1024) && (mbtotal < 1024))
         fprintf(stdout, "] %f/%f mB ", mbnow,mbtotal);
-    if(mbtotal > 1000)
+    if(mbtotal > 1024)
         fprintf(stdout, "] %f/%f GB ", gbnow,gbtotal);
     fprintf(stdout, "\r");
     return 0;
@@ -153,7 +153,7 @@ int getlist(const char *filename)
 	{
             for(i=1;i<NTRYMAX+1;i++)
 	    {
-	        sleep(1);
+                sleep(1);
                 fprintf(stderr, "[Try %d]\r", (i+1));
                 ret = getlink(url, prog, curl, i);
                 if(ret == 0)
@@ -201,8 +201,8 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     char *pagefilename;
     int i;
     int ret;
-    double existsize = 0;
-    double dlenght = 0;
+    curl_off_t existsize = 0;
+    long dlenght = 0;
     struct stat statbuf;
     
     
@@ -223,23 +223,23 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     if((stat(pagefilename, &statbuf) == 0))
     {
         existsize = statbuf.st_size;
-        double kbsize = existsize / 1000;
-        double mbsize = kbsize / 1000;
-        double gbsize = mbsize / 1000;
+        long kbsize = existsize / 1024;
+        long mbsize = kbsize / 1024;
+        long gbsize = mbsize / 1024;
         
         pagefile = fopen(pagefilename, "a+");
         if(ntry == 0)
         {
             printf("Already downloaded: ");
-            if(kbsize < 1000)
-                printf("%f kB\n", kbsize);
-            if((kbsize > 1000) && (mbsize < 1000))
-                printf("%f mB\n", mbsize);
-            if(mbsize > 1000)
-                printf("%f GB\n", gbsize);
+            if(kbsize < 1024)
+                printf("%ld kB\n", kbsize);
+            if((kbsize > 1024) && (mbsize < 1024))
+                printf("%ld mB\n", mbsize);
+            if(mbsize > 1024)
+                printf("%ld GB\n", gbsize);
         }
         
-        curl_easy_setopt(curl, CURLOPT_RESUME_FROM , statbuf.st_size);
+        curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , existsize);
     }
     else
     {
