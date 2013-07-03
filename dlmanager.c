@@ -73,18 +73,18 @@ static int progress(void *p,
         fprintf(stdout, " %d", percentage);
     if(percentage > 99)
         fprintf(stdout, "%d", percentage);
-    fprintf(stdout, "%% [");
-    for(dashes = 0;dashes+1<percentage;dashes++)
-        fprintf(stdout,"-");
-    for(i=0;i<100-percentage;i++)
-        fprintf(stdout, " ");
+    fprintf(stdout, "%% ");
+//     for(dashes = 0;dashes+1<percentage;dashes++)
+//         fprintf(stdout,"-");
+//     for(i=0;i<100-percentage;i++)
+//         fprintf(stdout, " ");
 //display directly the appropriate unit
     if(kbtotal < 1024)
-        fprintf(stdout, "] %f/%f kB ", kbnow,kbtotal);
+        fprintf(stdout, " %f/%f kB ", kbnow,kbtotal);
     if((kbtotal > 1024) && (mbtotal < 1024))
-        fprintf(stdout, "] %f/%f mB ", mbnow,mbtotal);
+        fprintf(stdout, " %f/%f mB ", mbnow,mbtotal);
     if(mbtotal > 1024)
-        fprintf(stdout, "] %f/%f GB ", gbnow,gbtotal);
+        fprintf(stdout, " %f/%f GB ", gbnow,gbtotal);
     fprintf(stdout, "\r");
     return 0;
 }
