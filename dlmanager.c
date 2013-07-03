@@ -12,7 +12,7 @@
 
 int main(int argc, char *argv[])
 {
-    const char *listfilename = "/tmp/dlmanagerlist";
+    const char *listfilename = "dlmanagerlist";
     int editval = 0;
     int getval = 0;
     
@@ -74,10 +74,6 @@ static int progress(void *p,
     if(percentage > 99)
         fprintf(stdout, "%d", percentage);
     fprintf(stdout, "%% ");
-//     for(dashes = 0;dashes+1<percentage;dashes++)
-//         fprintf(stdout,"-");
-//     for(i=0;i<100-percentage;i++)
-//         fprintf(stdout, " ");
 //display directly the appropriate unit
     if(dltotal < 1024)
         fprintf(stdout, " %5.1f/%5.1f B", (float)dlnow,(float)dltotal);
@@ -155,7 +151,7 @@ int getlist(const char *filename)
 	{
             for(i=1;i<NTRYMAX+1;i++)
 	    {
-                sleep(1);
+                usleep(1000);
                 fprintf(stderr, "[Try %d]\r", (i+1));
                 ret = getlink(url, prog, curl, i);
                 if(ret == 0)
@@ -300,6 +296,16 @@ int edit(const char *file)
     int retval = 0;
     char my_cmd[256];
     struct txteditors editors_a[5];
+    struct stat statbuf;
+    
+    
+    //if list does not exist, create empty file
+    if(stat(file, &statbuf) == -1)
+    {
+        FILE *f;
+        f = fopen(file, "w");
+        fclose(f);
+    }
 
     editors_a[0].editor = "nano";
     editors_a[1].editor = "pico";
