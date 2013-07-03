@@ -79,12 +79,14 @@ static int progress(void *p,
 //     for(i=0;i<100-percentage;i++)
 //         fprintf(stdout, " ");
 //display directly the appropriate unit
+    if(dltotal < 1024)
+        fprintf(stdout, " %5.1f/%5.1f B", (float)dlnow,(float)dltotal);
     if(kbtotal < 1024)
-        fprintf(stdout, " %f/%f kB ", kbnow,kbtotal);
+        fprintf(stdout, " %5.1f/%5.1f kB", (float)kbnow,(float)kbtotal);
     if((kbtotal > 1024) && (mbtotal < 1024))
-        fprintf(stdout, " %f/%f mB ", mbnow,mbtotal);
+        fprintf(stdout, " %5.1f/%5.1f mB", (float)mbnow,(float)mbtotal);
     if(mbtotal > 1024)
-        fprintf(stdout, " %f/%f GB ", gbnow,gbtotal);
+        fprintf(stdout, " %5.1f/%5.1f GB", (float)gbnow,(float)gbtotal);
     fprintf(stdout, "\r");
     return 0;
 }
@@ -223,20 +225,22 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     if((stat(pagefilename, &statbuf) == 0))
     {
         existsize = statbuf.st_size;
-        long kbsize = existsize / 1024;
-        long mbsize = kbsize / 1024;
-        long gbsize = mbsize / 1024;
+        float kbsize = existsize / 1024;
+        float mbsize = kbsize / 1024;
+        float gbsize = mbsize / 1024;
         
         pagefile = fopen(pagefilename, "a+");
         if(ntry == 0)
         {
             printf("Already downloaded: ");
-            if(kbsize < 1024)
-                printf("%ld kB\n", kbsize);
+            if((float)existsize < 1024)
+                printf("%5.1f B\n", (float)existsize);
+            if((kbsize < 1024) && (existsize > 1024))
+                printf("%5.1f kB\n", kbsize);
             if((kbsize > 1024) && (mbsize < 1024))
-                printf("%ld mB\n", mbsize);
+                printf("%5.1f mB\n", mbsize);
             if(mbsize > 1024)
-                printf("%ld GB\n", gbsize);
+                printf("%5.1f GB\n", gbsize);
         }
         
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , existsize);
