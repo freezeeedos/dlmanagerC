@@ -315,13 +315,13 @@ int edit(const char *file)
     
     for(i=0;i<5;i++)
     {
-        sprintf(my_cmd, "%s %s", editors_a[i].editor, file);
+        sprintf(my_cmd, "%s %s 2>/dev/null", editors_a[i].editor, file);
 	
 	retval = system(my_cmd);
-	if(retval != -1)
+	if(retval == 0)
 	    break;
     }
-    if(retval == -1)
+    if(retval != 0)
     {
         fprintf(stderr, "None of the text editors I tried seem to be present on this system.\n");
 	return -1;
