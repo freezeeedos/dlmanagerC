@@ -76,13 +76,13 @@ static int progress(void *p,
     fprintf(stdout, "%% ");
 //display directly the appropriate unit
     if(dltotal < 1024)
-        fprintf(stdout, " %5.1f/%5.1f B ", (float)dlnow,(float)dltotal);
+        fprintf(stdout, " %5.1f/%5.1f B       ", (float)dlnow,(float)dltotal);
     if((kbtotal < 1024) && (dltotal > 1024))
-        fprintf(stdout, " %5.1f/%5.1f kB", (float)kbnow,(float)kbtotal);
+        fprintf(stdout, " %5.1f/%5.1f kB      ", (float)kbnow,(float)kbtotal);
     if((kbtotal > 1024) && (mbtotal < 1024))
-        fprintf(stdout, " %5.1f/%5.1f mB", (float)mbnow,(float)mbtotal);
+        fprintf(stdout, " %5.1f/%5.1f mB      ", (float)mbnow,(float)mbtotal);
     if(mbtotal > 1024)
-        fprintf(stdout, " %5.1f/%5.1f GB", (float)gbnow,(float)gbtotal);
+        fprintf(stdout, " %5.1f/%5.1f GB      ", (float)gbnow,(float)gbtotal);
     fprintf(stdout, "\r");
     return 0;
 }
