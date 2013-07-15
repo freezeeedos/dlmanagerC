@@ -28,6 +28,8 @@
 #include <curl/curl.h>
 #include "dlmanager.h"
 
+long startime = 0;
+
 int main(int argc, char *argv[])
 {
     const char *listfilename = "dlmanagerlist";
@@ -67,12 +69,16 @@ static int progress(void *p,
     double mbtotal = 0;
     double gbnow = 0;
     double gbtotal = 0;
+    long curtime = 0;
+    long totaltime = 0;
     char *filename = myp->filename;
     int percentage = 0;
     int dashes = 0;
     int i = 0;
-    
+    int kbrate = 0;
+    int mbrate = 0;
 
+    curtime = time(NULL);
     
     percentage = (dlnow/dltotal) * 100;
     kbnow = dlnow / 1024;
@@ -81,6 +87,11 @@ static int progress(void *p,
     mbtotal = kbtotal / 1024;
     gbnow = mbnow / 1024;
     gbtotal = mbtotal / 1024;
+    
+    totaltime = curtime - startime;
+    
+    kbrate = kbnow/totaltime;
+    mbrate = mbnow/totaltime;
     
     fflush(stdout);
     if(percentage < 0)
@@ -101,6 +112,13 @@ static int progress(void *p,
         fprintf(stdout, " %5.1f/%5.1f mB      ", (float)mbnow,(float)mbtotal);
     if(mbtotal > 1024)
         fprintf(stdout, " %5.1f/%5.1f GB      ", (float)gbnow,(float)gbtotal);
+    
+    if(kbrate < 1024)
+        fprintf(stdout, "%5d kB/s", kbrate);
+    if(kbrate > 1024)
+        fprintf(stdout, "%5d mB/s", mbrate);
+//     fprintf(stdout, "%ld", startime);
+    fprintf(stdout, "        ");
     fprintf(stdout, "\r");
     return 0;
 }
@@ -267,6 +285,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     if (pagefile) 
     {
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
+        startime = time(NULL);
         ret = curl_easy_perform(curl);
         //printf("%d\n", ret);
         switch(ret)
