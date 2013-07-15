@@ -255,6 +255,8 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         {
             case 3:
                 fprintf(stderr, "Badly formatted URL.Ignoring...\n");
+                fclose(pagefile);
+                unlink(pagefilename);
                 return 0;
                 break;
             case 1:
