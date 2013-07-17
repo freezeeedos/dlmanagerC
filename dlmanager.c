@@ -188,7 +188,7 @@ int getlist(const char *filename)
             for(i=1;i<NTRYMAX+1;i++)
 	    {
                 usleep(1000);
-                fprintf(stderr, "[Try %d]    \n", (i+1));
+                fprintf(stderr, "[Try %d]\n", (i+1));
                 ret = getlink(url, prog, curl, i);
                 if(ret == 0)
                 {
@@ -294,7 +294,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         {
             case 22:
                 curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
-                fprintf(stderr, "Web server returned %d                   \r", httpcode);
+                fprintf(stderr, "\tWeb server returned %d                   \r", httpcode);
                 fclose(pagefile);
                 return -1;
                 break;
