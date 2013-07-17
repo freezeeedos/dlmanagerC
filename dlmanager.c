@@ -242,7 +242,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     
     
     pagefilename = getfilename(curl, link);
-    prog.filename = pagefilename;
+    pagefile = fopen("/dev/null", "w");
 
     if(ntry == 0)
         fprintf(stdout, "Getting '%s':\n", pagefilename);
@@ -252,8 +252,41 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     curl_easy_setopt(curl, CURLOPT_RANGE, "0-1");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
 //     curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
 
+
+    
+    ret = curl_easy_perform(curl);
+//         printf("CURL: %d\n", ret);
+    switch(ret)
+    {
+        case 22:
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
+            fprintf(stderr, "Web server returned %d                   \n", httpcode);
+            fclose(pagefile);
+            return 0;
+            break;
+        case 3:
+            fprintf(stderr, "Badly formatted URL.Ignoring...\n");
+            fclose(pagefile);
+            unlink(pagefilename);
+            return 0;
+            break;
+        case 1:
+            fprintf(stderr, "Unsupported protocol.Ignoring...\n");
+            fclose(pagefile);
+            unlink(pagefilename);
+            return 0;
+            break;
+        default:
+            break;
+    }
+    
+    fclose(pagefile);
+        
+    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 
     if((stat(pagefilename, &statbuf) == 0))
     {
@@ -284,61 +317,36 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         pagefile = fopen(pagefilename, "wb");
     }
     
+    if((existsize != 0) && (dlenght == 0) && (ret == 33))
+    {
+        fprintf(stdout, "\nfile already complete\n");
+        fclose(pagefile);
+        return 0;
+    }
+    
+    prog.filename = pagefilename;
+    curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0L); 
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
+    curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
+        
     startime = time(NULL);
     ret = curl_easy_perform(curl);
-//         printf("CURL: %d\n", ret);
-    switch(ret)
+    if(ret != 0)
     {
-        case 22:
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
-            fprintf(stderr, "Web server returned %d                   \n", httpcode);
-            fclose(pagefile);
-            return 0;
-            break;
-        case 3:
-            fprintf(stderr, "Badly formatted URL.Ignoring...\n");
-            fclose(pagefile);
-            unlink(pagefilename);
-            return 0;
-            break;
-        case 1:
-            fprintf(stderr, "Unsupported protocol.Ignoring...\n");
-            fclose(pagefile);
-            unlink(pagefilename);
-            return 0;
-            break;
-        default:
-            break;
-        
-        curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
-
-        if((existsize != 0) && (dlenght == 0) && (ret == 33))
+        if(ntry == NTRYMAX)
         {
-            fprintf(stdout, "\nfile already complete\n");
+            perror("Download failed");
             fclose(pagefile);
-            return 0;
         }
-        curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0L); 
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
-        curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
-        ret = curl_easy_perform(curl);
-	if(ret != 0)
-	{
-            if(ntry == NTRYMAX)
-            {
-                perror("Download failed");
-                fclose(pagefile);
-            }
-            return -1;
-	}
-	
-	
-	fclose(pagefile);
+        return -1;
     }
+	
+	
+    fclose(pagefile);
     fprintf(stdout, "\n");
     return 0;
 }
