@@ -235,8 +235,9 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     char *pagefilename;
     int i;
     int ret;
-    curl_off_t existsize = 0;
+    int httpcode;
     long dlenght = 0;
+    curl_off_t existsize = 0;
     struct stat statbuf;
     
     
@@ -249,6 +250,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -287,9 +289,15 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
         startime = time(NULL);
         ret = curl_easy_perform(curl);
-        //printf("%d\n", ret);
+//         printf("CURL: %d\n", ret);
         switch(ret)
         {
+            case 22:
+                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
+                fprintf(stderr, "Web server returned %d                   \r", httpcode);
+                fclose(pagefile);
+                return -1;
+                break;
             case 3:
                 fprintf(stderr, "Badly formatted URL.Ignoring...\n");
                 fclose(pagefile);
@@ -305,6 +313,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
             default:
                 break;
         }
+        
         curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 
         if((existsize != 0) && (dlenght == 0) && (ret == 33))
