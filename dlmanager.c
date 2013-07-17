@@ -298,6 +298,8 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
                 break;
             case 1:
                 fprintf(stderr, "Unsupported protocol.Ignoring...\n");
+                fclose(pagefile);
+                unlink(pagefilename);
                 return 0;
                 break;
             default:
