@@ -271,13 +271,11 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         case 3:
             fprintf(stderr, "Badly formatted URL.Ignoring...\n");
             fclose(pagefile);
-            unlink(pagefilename);
             return 0;
             break;
         case 1:
             fprintf(stderr, "Unsupported protocol.Ignoring...\n");
             fclose(pagefile);
-            unlink(pagefilename);
             return 0;
             break;
         default:
@@ -325,7 +323,6 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     }
     
     prog.filename = pagefilename;
-    curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0L); 
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
