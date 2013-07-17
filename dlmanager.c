@@ -32,7 +32,7 @@ long startime = 0;
 
 int main(int argc, char *argv[])
 {
-    const char *listfilename = "dlmanagerlist";
+    const char *listfilename = ".dlmanagerlist";
     int editval = 0;
     int getval = 0;
     
@@ -262,6 +262,10 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
 //         printf("CURL: %d\n", ret);
     switch(ret)
     {
+        case 78:
+            fprintf(stderr, "Remote file not found\n");
+            fclose(pagefile);
+            return 0;
         case 22:
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
             fprintf(stderr, "Web server returned %d                   \n", httpcode);
