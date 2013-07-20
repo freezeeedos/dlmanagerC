@@ -287,9 +287,11 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     }
     
     fclose(pagefile);
+    curl_easy_reset(curl);
+    prog.filename = pagefilename;
         
-    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 
+        
     if((stat(pagefilename, &statbuf) == 0))
     {
         existsize = statbuf.st_size;
@@ -318,6 +320,19 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM , 0);
         pagefile = fopen(pagefilename, "wb");
     }
+    curl_easy_setopt(curl, CURLOPT_URL, link);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
+    
+    startime = time(NULL);
+    curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
+    ret = curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
     
     if((existsize != 0) && (dlenght == 0) && (ret == 33))
     {
@@ -326,16 +341,10 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         return 0;
     }
     
-    prog.filename = pagefilename;
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
-    curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
-        
-    startime = time(NULL);
-    ret = curl_easy_perform(curl);
+    
+//     pagefile = fopen(pagefilename, ""); 
+
+
     if(ret != 0)
     {
         if(ntry == NTRYMAX)
