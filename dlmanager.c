@@ -77,8 +77,10 @@ static int progress(void *p,
     int i = 0;
     int kbrate = 0;
     int mbrate = 0;
+    int rate = 0;
 
     curtime = time(NULL);
+    
     
     percentage = (dlnow/dltotal) * 100;
     kbnow = dlnow / 1024;
@@ -90,6 +92,7 @@ static int progress(void *p,
     
     totaltime = curtime - startime;
     
+    rate = dlnow/totaltime;
     kbrate = kbnow/totaltime;
     mbrate = mbnow/totaltime;
     
@@ -112,11 +115,16 @@ static int progress(void *p,
         fprintf(stdout, " %5.1f/%5.1f mB      ", (float)mbnow,(float)mbtotal);
     if(mbtotal > 1024)
         fprintf(stdout, " %5.1f/%5.1f GB      ", (float)gbnow,(float)gbtotal);
-    
-    if(kbrate < 1024)
-        fprintf(stdout, "%5d kB/s", kbrate);
-    if(kbrate > 1024)
-        fprintf(stdout, "%5d mB/s", mbrate);
+ 
+    if(rate > 0)
+    {
+        if(rate < 1024)
+            fprintf(stdout, "%4d B/s", rate);
+        if(kbrate < 1024)
+            fprintf(stdout, "%4d kB/s", kbrate);
+        if(kbrate > 1024)
+            fprintf(stdout, "%5d mB/s", mbrate);
+    }
 //     fprintf(stdout, "%ld", startime);
     fprintf(stdout, "        ");
     fprintf(stdout, "\r");
@@ -313,6 +321,10 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
                 printf("%5.1f GB\n", gbsize);
         }
         
+    }
+    
+    if(existsize != 0)
+    {
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , existsize);
     }
     else
@@ -320,6 +332,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM , 0);
         pagefile = fopen(pagefilename, "wb");
     }
+    
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -329,21 +342,17 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
     
-    startime = time(NULL);
     curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
+    startime = time(NULL);
     ret = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
     
     if((existsize != 0) && (dlenght == 0) && (ret == 33))
     {
-        fprintf(stdout, "\nfile already complete\n");
+//         fprintf(stdout, "\nfile already complete\n");
         fclose(pagefile);
         return 0;
     }
-    
-    
-//     pagefile = fopen(pagefilename, ""); 
-
 
     if(ret != 0)
     {
