@@ -271,21 +271,25 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         case 78:
             fprintf(stderr, "Remote file not found\n");
             fclose(pagefile);
+            curl_free(pagefilename);
             return 0;
         case 22:
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
             fprintf(stderr, "Web server returned %d                   \n", httpcode);
             fclose(pagefile);
+            curl_free(pagefilename);
             return 0;
             break;
         case 3:
             fprintf(stderr, "Badly formatted URL.Ignoring...\n");
             fclose(pagefile);
+            curl_free(pagefilename);
             return 0;
             break;
         case 1:
             fprintf(stderr, "Unsupported protocol.Ignoring...\n");
             fclose(pagefile);
+            curl_free(pagefilename);
             return 0;
             break;
         default:
@@ -349,6 +353,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     {
 //         fprintf(stdout, "\nfile already complete\n");
         fclose(pagefile);
+        curl_free(pagefilename);
         return 0;
     }
 
@@ -359,12 +364,14 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
             perror("Download failed");
             fclose(pagefile);
         }
+        curl_free(pagefilename);
         return -1;
     }
 	
 	
     fclose(pagefile);
     fprintf(stdout, "\n");
+    curl_free(pagefilename);
     return 0;
 }
 
