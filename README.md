@@ -14,4 +14,15 @@ Sample Output:
     100%  680.0/680.0 mB         61 mB/s
 **Note**: the reason for such high speed is because I was transferring local files (curl supports the file:// protocol)
 
+Install:
+--------
+
+Linux/cygwin:
+
+You will need the GNU C COMPILER.
+
+*Install the "libcurl-dev" package (or equivalent for your distribution)
+*'./build.sh'
+*Enjoy !
+
 [libcurl website] (http://curl.haxx.se/libcurl/)
