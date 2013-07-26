@@ -14,5 +14,4 @@ Sample Output:
     100%  680.0/680.0 mB         61 mB/s
 **Note**: the reason for such high speed is because I was transferring local files (curl supports the file:// protocol)
 
-libcurl website:
-http://curl.haxx.se/libcurl/
+[libcurl website] (http://curl.haxx.se/libcurl/)
