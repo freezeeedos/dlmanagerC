@@ -21,8 +21,8 @@ Linux/cygwin:
 
 You will need the GNU C COMPILER.
 
-*Install the "libcurl-dev" package (or equivalent for your distribution)
-*'./build.sh'
-*Enjoy !
+* Install the "libcurl-dev" package (or equivalent for your distribution)
+* './build.sh'
+* Enjoy !
 
 [libcurl website] (http://curl.haxx.se/libcurl/)
