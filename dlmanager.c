@@ -200,7 +200,7 @@ int getlist(const char *filename)
                 {
                     break;
                 }
-                if((ret == -1) && (i == NTRYMAX))
+                if((ret == -1) && (i == NTRYMAX+1))
                 {
                     fail++;
                     failed[fail].link = line;
