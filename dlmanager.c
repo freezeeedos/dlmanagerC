@@ -260,8 +260,6 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     curl_easy_setopt(curl, CURLOPT_RANGE, "0-1");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
-//     curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
-
 
     
     ret = curl_easy_perform(curl);
@@ -325,7 +323,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         
     }
     
-    if(existsize != 0)
+    if(existsize > 0)
     {
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , existsize);
     }
@@ -349,7 +347,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     ret = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
     
-    if((existsize != 0) && (dlenght == 0) && (ret == 33))
+    if((existsize > 0) && (dlenght == 0) && (ret == 33))
     {
 //         fprintf(stdout, "\nfile already complete\n");
         fclose(pagefile);
