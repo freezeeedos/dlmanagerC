@@ -331,7 +331,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     }
     else
     {
-        curl_easy_setopt(curl, CURLOPT_RESUME_FROM , 0);
+        curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , 0);
         pagefile = fopen(pagefilename, "wb");
     }
     
