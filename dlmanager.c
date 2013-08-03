@@ -67,11 +67,14 @@ static int progress(void *p,
     double mbtotal = 0;
     double gbnow = 0;
     double gbtotal = 0;
+    double dlremaining = 0;
     long curtime = 0;
     long totaltime = 0;
+    int eta = 0;
+    int eta_min = 0;
+    int eta_hour = 0;
     char *filename = myp->filename;
     int percentage = 0;
-    int dashes = 0;
     int i = 0;
     int kbrate = 0;
     int mbrate = 0;
@@ -93,6 +96,11 @@ static int progress(void *p,
     rate = dlnow/totaltime;
     kbrate = kbnow/totaltime;
     mbrate = mbnow/totaltime;
+
+    dlremaining = dltotal - dlnow;
+    eta = dlremaining / rate;
+    eta_min = eta / 60;
+    eta_hour = eta_min / 60;
     
     fflush(stdout);
     if(percentage < 0)
@@ -122,9 +130,9 @@ static int progress(void *p,
             fprintf(stdout, "%4d kB/s", kbrate);
         if(kbrate > 1024)
             fprintf(stdout, "%5d mB/s", mbrate);
+	fprintf(stdout, "    eta: ");
+	  fprintf(stdout, "%dh%dm%ds ", eta_hour, eta_min, (eta - (eta_min*60)));
     }
-//     fprintf(stdout, "%ld", startime);
-    fprintf(stdout, "        ");
     fprintf(stdout, "\r");
     return 0;
 }
