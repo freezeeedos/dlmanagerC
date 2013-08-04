@@ -1,4 +1,3 @@
-
 //This program is a small download manager that will try to open
 //a text editor and download the links you paste in it.
 //Copyright (C) 2013  Quentin Gibert
@@ -316,24 +315,28 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
             fprintf(stderr, "Remote file not found\n");
             fclose(pagefile);
             curl_free(pagefilename);
+	    curl_easy_reset(curl);
             return 0;
         case 22:
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
             fprintf(stderr, "Web server returned %d                   \n", httpcode);
             fclose(pagefile);
             curl_free(pagefilename);
+	    curl_easy_reset(curl);
             return 0;
             break;
         case 3:
             fprintf(stderr, "Badly formatted URL.Ignoring...\n");
             fclose(pagefile);
             curl_free(pagefilename);
+	    curl_easy_reset(curl);
             return 0;
             break;
         case 1:
             fprintf(stderr, "Unsupported protocol.Ignoring...\n");
             fclose(pagefile);
             curl_free(pagefilename);
+	    curl_easy_reset(curl);
             return 0;
             break;
         default:
@@ -343,23 +346,21 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     fclose(pagefile);
     curl_easy_reset(curl);
     prog.filename = pagefilename;
-        
-
-        
+    
     if((stat(pagefilename, &statbuf) == 0))
     {
         existsize = statbuf.st_size;
-        float kbsize = existsize / 1024;
+        float kbsize = statbuf.st_size / 1024;
         float mbsize = kbsize / 1024;
         float gbsize = mbsize / 1024;
-        
+	
         pagefile = fopen(pagefilename, "a+");
         if(ntry == 0)
         {
             printf("Already downloaded: ");
-            if((float)existsize < 1024)
-                printf("%5.1f B\n", (float)existsize);
-            if((kbsize < 1024) && (existsize > 1024))
+            if(statbuf.st_size < 1024)
+                printf("%5.1f B\n", (float)statbuf.st_size);
+            if((kbsize < 1024) && (statbuf.st_size > 1024))
                 printf("%5.1f kB\n", kbsize);
             if((kbsize > 1024) && (mbsize < 1024))
                 printf("%5.1f mB\n", mbsize);
@@ -368,14 +369,18 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         }
         
     }
-    
+    else
+    {
+	perror("Stat");
+    }
+
     if(existsize > 0)
     {
         curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , existsize);
     }
     else
     {
-        curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , 0);
+//         curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , 0);
         pagefile = fopen(pagefilename, "wb");
     }
     
@@ -392,12 +397,13 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     startime = time(NULL);
     ret = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
-    
+
     if((existsize > 0) && (dlenght == 0) && (ret == 33))
     {
-//         fprintf(stdout, "\nfile already complete\n");
+        fprintf(stdout, "\nfile already complete\n");
         fclose(pagefile);
         curl_free(pagefilename);
+	curl_easy_reset(curl);
         return 0;
     }
 
@@ -409,6 +415,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
             fclose(pagefile);
         }
         curl_free(pagefilename);
+	curl_easy_reset(curl);
         return -1;
     }
 	
@@ -416,6 +423,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     fclose(pagefile);
     fprintf(stdout, "\n");
     curl_free(pagefilename);
+    curl_easy_reset(curl);
     return 0;
 }
 
