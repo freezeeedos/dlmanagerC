@@ -52,6 +52,12 @@ int main(int argc, char *argv[])
     }
 
     getval = getlist(listfilename);
+    if(getval == -1)
+    {
+	fprintf(stderr, "Execution ended with errors\n");
+	return -1;
+    }
+    
     fprintf(stdout,"\n");
     return 0;
 }
@@ -206,7 +212,7 @@ int getlist(const char *filename)
     if(listfile == NULL)
     {
         perror("failed to open links list");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     curl_global_init(CURL_GLOBAL_ALL);
