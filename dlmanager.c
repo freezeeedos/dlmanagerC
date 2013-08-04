@@ -27,6 +27,15 @@
 #include "dlmanager.h"
 
 long startime = 0;
+int interv_count = 0;
+
+int rate_old = 0;
+int kbrate_old = 0;
+int mbrate_old = 0;
+
+int eta_old = 0;
+int eta_min_old = 0;
+int eta_hour_old = 0;
 
 int main(int argc, char *argv[])
 {
@@ -81,6 +90,7 @@ static int progress(void *p,
     int rate = 0;
 
     curtime = time(NULL);
+    interv_count = interv_count++;
     
     
     percentage = (dlnow/dltotal) * 100;
@@ -124,15 +134,27 @@ static int progress(void *p,
  
     if(rate > 0)
     {
+	if(interv_count > 1000)
+	{
+	    rate_old = rate;
+	    kbrate_old = kbrate;
+	    mbrate_old = mbrate;
+	    
+	    eta_hour_old = eta_hour;
+	    eta_min_old = eta_min;
+	    eta_old = eta;
+	    interv_count = 0;
+	}
         if(rate < 1024)
-            fprintf(stdout, "%4d B/s", rate);
+            fprintf(stdout, "%4d B/s", rate_old);
         if(kbrate < 1024)
-            fprintf(stdout, "%4d kB/s", kbrate);
+            fprintf(stdout, "%4d kB/s", kbrate_old);
         if(kbrate > 1024)
-            fprintf(stdout, "%5d mB/s", mbrate);
+            fprintf(stdout, "%5d mB/s", mbrate_old);
 	fprintf(stdout, "    eta: ");
-	  fprintf(stdout, "%dh%dm%ds ", eta_hour, eta_min, (eta - (eta_min*60)));
+	fprintf(stdout, "%dh%dm%ds   ", eta_hour_old, eta_min_old, (eta_old - (eta_min_old*60)));
     }
+//     printf(" Interv count=%d   ", interv_count);
     fprintf(stdout, "\r");
     return 0;
 }
@@ -255,6 +277,16 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     struct stat statbuf;
     
     
+    interv_count = 0;
+
+    rate_old = 0;
+    kbrate_old = 0;
+    mbrate_old = 0;
+
+    eta_old = 0;
+    eta_min_old = 0;
+    eta_hour_old = 0;
+
     pagefilename = getfilename(curl, link);
     pagefile = fopen("/dev/null", "w");
 
