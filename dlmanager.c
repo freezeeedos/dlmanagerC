@@ -369,10 +369,6 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
         }
         
     }
-    else
-    {
-	perror("Stat");
-    }
 
     if(existsize > 0)
     {
