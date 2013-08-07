@@ -240,7 +240,6 @@ int getlist(const char *filename)
                     fail++;
                     failed[fail].link = line;
                 }
-		printf("fail=%d i=%d ntrymax=%d\n", fail, i, NTRYMAX);
 	    }
 	}
 	else
