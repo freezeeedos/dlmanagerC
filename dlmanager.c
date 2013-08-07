@@ -235,11 +235,12 @@ int getlist(const char *filename)
                 {
                     break;
                 }
-                if((ret == -1) && (i == NTRYMAX+1))
+                if((ret == -1) && (i == NTRYMAX))
                 {
                     fail++;
                     failed[fail].link = line;
                 }
+		printf("fail=%d i=%d ntrymax=%d\n", fail, i, NTRYMAX);
 	    }
 	}
 	else
