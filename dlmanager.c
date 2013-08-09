@@ -223,14 +223,14 @@ int getlist(const char *filename)
     {
 	url = line;
         i = 0;
-	ret = getlink(url, prog, curl, i);
+	ret = getlink(url, &prog, curl, i);
 	if(ret == -1)
 	{
             for(i=1;i<NTRYMAX+1;i++)
 	    {
                 usleep(1000);
                 fprintf(stderr, "[Try %d]\n", (i+1));
-                ret = getlink(url, prog, curl, i);
+                ret = getlink(url, &prog, curl, i);
                 if(ret == 0)
                 {
                     break;
@@ -271,7 +271,7 @@ int getlist(const char *filename)
     return 0;
 }
 
-int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
+int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
@@ -346,7 +346,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     
     fclose(pagefile);
     curl_easy_reset(curl);
-    prog.filename = pagefilename;
+    prog->filename = pagefilename;
     
     if((stat(pagefilename, &statbuf) == 0))
     {
