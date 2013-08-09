@@ -51,7 +51,7 @@ char *getfilename(CURL *curl, char *link);
 int getlist(const char *filename);
 int getlink(char *link, 
             struct myprogress 
-            prog, CURL *curl, int ntry);
+            *prog, CURL *curl, int ntry);
 int edit(const char *file);
 
 #endif

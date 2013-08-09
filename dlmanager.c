@@ -196,7 +196,7 @@ int getlist(const char *filename)
 {
     CURL *curl;
     FILE *listfile;
-    struct myprogress prog;
+    struct myprogress *prog;
     struct failures failed[1000];
     struct completed complete[1000];
     char line[1000];
@@ -217,8 +217,8 @@ int getlist(const char *filename)
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
-    prog.lastruntime = 0;
-    prog.curl = curl;
+    prog->lastruntime = 0;
+    prog->curl = curl;
     while(fgets(line, 1000, listfile) != NULL)
     {
 	url = line;
@@ -271,7 +271,7 @@ int getlist(const char *filename)
     return 0;
 }
 
-int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
+int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
@@ -346,7 +346,7 @@ int getlink(char *link, struct myprogress prog, CURL *curl, int ntry)
     
     fclose(pagefile);
     curl_easy_reset(curl);
-    prog.filename = pagefilename;
+    prog->filename = pagefilename;
     
     if((stat(pagefilename, &statbuf) == 0))
     {
