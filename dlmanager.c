@@ -149,7 +149,6 @@ static int progress(void *p,
 	    eta_min_old = eta_min;
 	    eta_old = eta;
 	    interv_count = 0;
-	}
         if(rate < 1024)
             fprintf(stdout, "%4d B/s", rate_old);
         if(kbrate < 1024)
@@ -158,6 +157,7 @@ static int progress(void *p,
             fprintf(stdout, "%5d mB/s", mbrate_old);
 	fprintf(stdout, "    eta: ");
 	fprintf(stdout, "%dh%dm%ds   ", eta_hour_old, eta_min_old, (eta_old - (eta_min_old*60)));
+	}
     }
 //     printf(" Interv count=%d   ", interv_count);
     fprintf(stdout, "\r");
