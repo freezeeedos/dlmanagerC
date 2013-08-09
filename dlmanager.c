@@ -169,8 +169,7 @@ char *getfilename(CURL *curl, char *link)
     int i = 0;
     int j = 0;
     int k = -1;
-    int mark = 0;
-    int newlenght = 0;
+    int mark = -1;
     char name[1000];
     char *nameret = NULL;
    
@@ -181,7 +180,7 @@ char *getfilename(CURL *curl, char *link)
 	    mark = i;
 	}
     }
-    newlenght = i - mark;
+
     for(j=mark+1;j<i;j++)
     {
 	k++;
@@ -223,14 +222,14 @@ int getlist(const char *filename)
     {
 	url = line;
         i = 0;
-	ret = getlink(url, prog, curl, i);
+	ret = getlink(url, &prog, curl, i);
 	if(ret == -1)
 	{
             for(i=1;i<NTRYMAX+1;i++)
 	    {
                 usleep(1000);
                 fprintf(stderr, "[Try %d]\n", (i+1));
-                ret = getlink(url, prog, curl, i);
+                ret = getlink(url, &prog, curl, i);
                 if(ret == 0)
                 {
                     break;
@@ -238,7 +237,7 @@ int getlist(const char *filename)
                 if((ret == -1) && (i == NTRYMAX))
                 {
                     fail++;
-                    failed[fail].link = line;
+                    failed[fail].link = strdup(line);
                 }
 	    }
 	}
@@ -248,6 +247,8 @@ int getlist(const char *filename)
             complete[ok].link = line;          
         }
     }
+    
+    
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     fclose(listfile);
@@ -263,6 +264,7 @@ int getlist(const char *filename)
             
             fprintf(stderr, "failed: %s", failed[i].link);
             fprintf(listfile, "%s", failed[i].link);
+	    free(failed[i].link);
         }
         fclose(listfile);
         return -1;
