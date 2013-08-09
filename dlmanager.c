@@ -249,6 +249,7 @@ int getlist(const char *filename)
         }
     }
     curl_easy_cleanup(curl);
+    curl_global_cleanup();
     fclose(listfile);
     unlink(filename);
     
