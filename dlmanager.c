@@ -193,7 +193,6 @@ int getlist(const char *filename)
     FILE *listfile;
     struct myprogress prog;
     struct failures failed[1000];
-    struct completed complete[1000];
     char line[1000];
     char *url;
     int ret;
@@ -237,11 +236,6 @@ int getlist(const char *filename)
                 }
 	    }
 	}
-	else
-        {
-            ok++;
-            complete[ok].link = line;          
-        }
     }
     
     
