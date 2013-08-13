@@ -197,7 +197,6 @@ int getlist(const char *filename)
     char *url;
     int ret;
     int i = 0;
-    int ok = 0;
     int fail = 0;
     
 
