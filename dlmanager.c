@@ -73,8 +73,6 @@ static int progress(void *p,
 		    double dltotal, double dlnow,
 		    double ultotal, double ulnow)
 {
-    struct myprogress *myp = (struct myprogress *)p;
-    CURL *curl = myp->curl;
     double kbnow = 0;
     double kbtotal = 0;
     double mbnow = 0;
@@ -87,9 +85,7 @@ static int progress(void *p,
     int eta = 0;
     int eta_min = 0;
     int eta_hour = 0;
-    char *filename = myp->filename;
     int percentage = 0;
-    int i = 0;
     int kbrate = 0;
     int mbrate = 0;
     int rate = 0;
@@ -195,7 +191,7 @@ int getlist(const char *filename)
 {
     CURL *curl;
     FILE *listfile;
-    struct myprogress *prog;
+    struct myprogress prog;
     struct failures failed[1000];
     struct completed complete[1000];
     char line[1000];
@@ -216,8 +212,8 @@ int getlist(const char *filename)
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
-    prog->lastruntime = 0;
-    prog->curl = curl;
+    prog.lastruntime = 0;
+    prog.curl = curl;
     while(fgets(line, 1000, listfile) != NULL)
     {
 	url = line;
@@ -277,7 +273,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
-    int i;
     int ret;
     int httpcode;
     long dlenght = 0;
