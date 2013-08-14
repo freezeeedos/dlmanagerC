@@ -8,11 +8,12 @@ And if you think my code is complete crap, you can also tell me. But you have to
 
 Sample Output:
 
-    Getting 'winpe.iso':
-    100%  112.8/112.8 mB        112 mB/s        
-    Getting 'elementaryos-beta2-amd64.20130506.iso':
-    100%  680.0/680.0 mB         61 mB/s
-**Note**: the reason for such high speed is because I was transferring local files (curl supports the file:// protocol)
+    Getting 'CentOS-6.4-x86_64-netinstall.iso':
+    100%  230.0/230.0 mB       805 kB/s    eta: 0h0m0s     
+    Getting 'CentOS-6.4-x86_64-minimal.iso':
+    100%  342.3/342.3 mB       813 kB/s    eta: 0h0m0s
+    
+**Note**: the reason for such high speeds is because I was transferring local files (curl supports the file:// protocol)
 
 Install:
 --------
