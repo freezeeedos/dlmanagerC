@@ -91,7 +91,7 @@ static int progress(void *p,
     int rate = 0;
 
     curtime = time(NULL);
-    interv_count = interv_count++;
+    interv_count++;
     
     
     percentage = (dlnow/dltotal) * 100;
