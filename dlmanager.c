@@ -219,6 +219,14 @@ int getlist(const char *filename)
 	    if((line[i] == '\r') || (line[i] == '\n'))
 		line[i] = '\0';
 	}
+
+	for(i = 0;line[i] != '\0';i++);
+	
+	if(i < 6)
+	    continue;
+	if((line[0] == ' ') || (line[0] == '\t'))
+	    continue;
+	
 	url = line;
         i = 0;
 	ret = getlink(url, &prog, curl, i);
