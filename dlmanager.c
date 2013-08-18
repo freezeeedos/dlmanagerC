@@ -182,7 +182,7 @@ char *getfilename(CURL *curl, char *link)
 	k++;
 	name[k] = link[j];
     }
-    name[k] = '\0';
+//     name[k+1] = '\0';
     nameret = curl_easy_unescape( curl , name , 0 , 0 );
     return nameret;
 }
@@ -219,7 +219,6 @@ int getlist(const char *filename)
 	    if((line[i] == '\r') || (line[i] == '\n'))
 		line[i] = '\0';
 	}
-
 	for(i = 0;line[i] != '\0';i++);
 	
 	if(i < 5)
@@ -264,8 +263,8 @@ int getlist(const char *filename)
             if(i == 1)
                 fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n");
             
-            fprintf(stderr, "failed: %s", failed[i].link);
-            fprintf(listfile, "%s", failed[i].link);
+            fprintf(stderr, "failed: %s\n", failed[i].link);
+            fprintf(listfile, "%s\n", failed[i].link);
 	    free(failed[i].link);
         }
         fclose(listfile);
