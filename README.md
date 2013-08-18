@@ -13,7 +13,6 @@ Sample Output:
     Getting 'CentOS-6.4-x86_64-minimal.iso':
     100%  342.3/342.3 mB       813 kB/s    eta: 0h0m0s
     
-**Note**: the reason for such high speeds is because I was transferring local files (curl supports the file:// protocol)
 
 Install:
 --------
