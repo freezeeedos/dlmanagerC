@@ -214,6 +214,13 @@ int getlist(const char *filename)
     prog.curl = curl;
     while(fgets(line, 1000, listfile) != NULL)
     {
+	if(atoi(line) == '\0')
+	    continue;
+        for(i = 0;line[i] != '\0';i++)
+	{
+	    if((line[i] == '\r') || (line[i] == '\n'))
+		line[i] = '\0';
+	}
 	url = line;
         i = 0;
 	ret = getlink(url, &prog, curl, i);
