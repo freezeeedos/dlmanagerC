@@ -222,7 +222,7 @@ int getlist(const char *filename)
 
 	for(i = 0;line[i] != '\0';i++);
 	
-	if(i < 6)
+	if(i < 5)
 	    continue;
 	if((line[0] == ' ') || (line[0] == '\t'))
 	    continue;
