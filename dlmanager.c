@@ -113,46 +113,59 @@ static int progress(void *p,
     eta_min = eta / 60;
     eta_hour = eta_min / 60;
     
-    fflush(stdout);
-    if(percentage < 0)
-        percentage = 0;
-    if( percentage < 10)
-	fprintf(stdout, "  %d", percentage);
-    if((percentage > 9) && (percentage < 100))
-        fprintf(stdout, " %d", percentage);
-    if(percentage > 99)
-        fprintf(stdout, "%d", percentage);
-    fprintf(stdout, "%% ");
-//display directly the appropriate unit
-    if(dltotal < 1024)
-        fprintf(stdout, " %5.1f/%5.1f B       ", (float)dlnow,(float)dltotal);
-    if((kbtotal < 1024) && (dltotal > 1024))
-        fprintf(stdout, " %5.1f/%5.1f kB      ", (float)kbnow,(float)kbtotal);
-    if((kbtotal > 1024) && (mbtotal < 1024))
-        fprintf(stdout, " %5.1f/%5.1f mB      ", (float)mbnow,(float)mbtotal);
-    if(mbtotal > 1024)
-        fprintf(stdout, " %5.1f/%5.1f GB      ", (float)gbnow,(float)gbtotal);
  
-    if(rate > 0)
+    if((percentage == 100 ) || (interv_count > 1000))
     {
-	if(interv_count > 1000)
+	int percentage_old = percentage;
+	
+	float dltotal_old = dltotal;
+	float kbtotal_old = kbtotal;
+	float mbtotal_old = mbtotal;
+	float gbtotal_old = gbtotal;
+	
+	float dlnow_old = dlnow;
+	float kbnow_old = kbnow;
+	float mbnow_old = mbnow;
+	float gbnow_old = gbnow;
+	
+	fflush(stdout);
+	
+	if(percentage_old < 0)
+	    percentage_old = 0;
+	if( percentage_old < 10)
+	    fprintf(stdout, "  %d", percentage_old);
+	if((percentage_old > 9) && (percentage_old < 100))
+	    fprintf(stdout, " %d", percentage_old);
+	if(percentage_old > 99)
+	    fprintf(stdout, "%d", percentage_old);
+	fprintf(stdout, "%% ");
+    //display directly the appropriate unit
+	if(dltotal_old < 1024)
+	    fprintf(stdout, " %5.1f/%5.1f B       ", dlnow_old,dltotal_old);
+	if((kbtotal_old < 1024) && (dltotal_old > 1024))
+	    fprintf(stdout, " %5.1f/%5.1f kB      ", kbnow_old,kbtotal_old);
+	if((kbtotal_old > 1024) && (mbtotal_old < 1024))
+	    fprintf(stdout, " %5.1f/%5.1f mB      ", mbnow_old,mbtotal_old);
+	if(mbtotal_old > 1024)
+	    fprintf(stdout, " %5.1f/%5.1f GB      ", gbnow_old,gbtotal_old);
+	if(rate > 0)
 	{
-	    rate_old = rate;
-	    kbrate_old = kbrate;
-	    mbrate_old = mbrate;
-	    
-	    eta_hour_old = eta_hour;
-	    eta_min_old = eta_min;
-	    eta_old = eta;
-	    interv_count = 0;
-        if(rate < 1024)
-            fprintf(stdout, "%4d B/s", rate_old);
-        if(kbrate < 1024)
-            fprintf(stdout, "%4d kB/s", kbrate_old);
-        if(kbrate > 1024)
-            fprintf(stdout, "%5d mB/s", mbrate_old);
-	fprintf(stdout, "    eta: ");
-	fprintf(stdout, "%dh%dm%ds   ", eta_hour_old, eta_min_old, (eta_old - (eta_min_old*60)));
+		rate_old = rate;
+		kbrate_old = kbrate;
+		mbrate_old = mbrate;
+		
+		eta_hour_old = eta_hour;
+		eta_min_old = eta_min;
+		eta_old = eta;
+		interv_count = 0;
+	    if(rate < 1024)
+		fprintf(stdout, "%4d B/s", rate_old);
+	    if(kbrate < 1024)
+		fprintf(stdout, "%4d kB/s", kbrate_old);
+	    if(kbrate > 1024)
+		fprintf(stdout, "%5d mB/s", mbrate_old);
+	    fprintf(stdout, "    eta: ");
+	    fprintf(stdout, "%dh%dm%ds   ", eta_hour_old, eta_min_old, (eta_old - (eta_min_old*60)));
 	}
     }
 //     printf(" Interv count=%d   ", interv_count);
@@ -182,7 +195,7 @@ char *getfilename(CURL *curl, char *link)
 	k++;
 	name[k] = link[j];
     }
-//     name[k+1] = '\0';
+    name[k] = '\0';
     nameret = curl_easy_unescape( curl , name , 0 , 0 );
     return nameret;
 }
@@ -214,11 +227,12 @@ int getlist(const char *filename)
     prog.curl = curl;
     while(fgets(line, 1000, listfile) != NULL)
     {
-        for(i = 0;line[i] != '\0';i++)
-	{
-	    if((line[i] == '\r') || (line[i] == '\n'))
-		line[i] = '\0';
-	}
+//         for(i = 0;line[i] != '\0';i++)
+// 	{
+// 	    if((line[i] == '\r') || (line[i] == '\n'))
+// 		line[i] = '\0';
+// 	}
+	
 	for(i = 0;line[i] != '\0';i++);
 	
 	if(i < 5)
