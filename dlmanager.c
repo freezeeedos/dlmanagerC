@@ -28,13 +28,6 @@
 long startime = 0;
 int interv_count = 0;
 
-int rate_old = 0;
-int kbrate_old = 0;
-int mbrate_old = 0;
-
-int eta_old = 0;
-int eta_min_old = 0;
-int eta_hour_old = 0;
 
 int main(int argc, char *argv[])
 {
@@ -90,6 +83,7 @@ static int progress(void *p,
     int mbrate = 0;
     int rate = 0;
 
+    
     curtime = time(NULL);
     interv_count++;
     
@@ -116,56 +110,38 @@ static int progress(void *p,
  
     if((percentage == 100 ) || (interv_count > 1000))
     {
-	int percentage_old = percentage;
 	
-	float dltotal_old = dltotal;
-	float kbtotal_old = kbtotal;
-	float mbtotal_old = mbtotal;
-	float gbtotal_old = gbtotal;
-	
-	float dlnow_old = dlnow;
-	float kbnow_old = kbnow;
-	float mbnow_old = mbnow;
-	float gbnow_old = gbnow;
-	
+	interv_count = 0;
 	fflush(stdout);
 	
-	if(percentage_old < 0)
-	    percentage_old = 0;
-	if( percentage_old < 10)
-	    fprintf(stdout, "  %d", percentage_old);
-	if((percentage_old > 9) && (percentage_old < 100))
-	    fprintf(stdout, " %d", percentage_old);
-	if(percentage_old > 99)
-	    fprintf(stdout, "%d", percentage_old);
+	if(percentage < 0)
+	    percentage = 0;
+	if( percentage < 10)
+	    fprintf(stdout, "  %d", percentage);
+	if((percentage > 9) && (percentage < 100))
+	    fprintf(stdout, " %d", percentage);
+	if(percentage > 99)
+	    fprintf(stdout, "%d", percentage);
 	fprintf(stdout, "%% ");
     //display directly the appropriate unit
-	if(dltotal_old < 1024)
-	    fprintf(stdout, " %5.1f/%5.1f B       ", dlnow_old,dltotal_old);
-	if((kbtotal_old < 1024) && (dltotal_old > 1024))
-	    fprintf(stdout, " %5.1f/%5.1f kB      ", kbnow_old,kbtotal_old);
-	if((kbtotal_old > 1024) && (mbtotal_old < 1024))
-	    fprintf(stdout, " %5.1f/%5.1f mB      ", mbnow_old,mbtotal_old);
-	if(mbtotal_old > 1024)
-	    fprintf(stdout, " %5.1f/%5.1f GB      ", gbnow_old,gbtotal_old);
+	if(dltotal < 1024)
+	    fprintf(stdout, " %5.1f/%5.1f B       ", (float)dlnow,(float)dltotal);
+	if((kbtotal < 1024) && (dltotal > 1024))
+	    fprintf(stdout, " %5.1f/%5.1f kB      ", (float)kbnow,(float)kbtotal);
+	if((kbtotal > 1024) && (mbtotal < 1024))
+	    fprintf(stdout, " %5.1f/%5.1f mB      ", (float)mbnow,(float)mbtotal);
+	if(mbtotal > 1024)
+	    fprintf(stdout, " %5.1f/%5.1f GB      ", (float)gbnow,(float)gbtotal);
 	if(rate > 0)
 	{
-		rate_old = rate;
-		kbrate_old = kbrate;
-		mbrate_old = mbrate;
-		
-		eta_hour_old = eta_hour;
-		eta_min_old = eta_min;
-		eta_old = eta;
-		interv_count = 0;
 	    if(rate < 1024)
-		fprintf(stdout, "%4d B/s", rate_old);
+		fprintf(stdout, "%4d B/s", rate);
 	    if(kbrate < 1024)
-		fprintf(stdout, "%4d kB/s", kbrate_old);
+		fprintf(stdout, "%4d kB/s", kbrate);
 	    if(kbrate > 1024)
-		fprintf(stdout, "%5d mB/s", mbrate_old);
+		fprintf(stdout, "%5d mB/s", mbrate);
 	    fprintf(stdout, "    eta: ");
-	    fprintf(stdout, "%dh%dm%ds   ", eta_hour_old, eta_min_old, (eta_old - (eta_min_old*60)));
+	    fprintf(stdout, "%dh%dm%ds   ", eta_hour, eta_min, (eta - (eta_min*60)));
 	}
     }
 //     printf(" Interv count=%d   ", interv_count);
@@ -301,13 +277,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     
     interv_count = 0;
 
-    rate_old = 0;
-    kbrate_old = 0;
-    mbrate_old = 0;
-
-    eta_old = 0;
-    eta_min_old = 0;
-    eta_hour_old = 0;
 
     pagefilename = getfilename(curl, link);
     pagefile = fopen("/dev/null", "w");
