@@ -108,7 +108,7 @@ static int progress(void *p,
     eta_hour = eta_min / 60;
     
  
-    if((percentage == 100 ) || (interv_count > 1000))
+    if((dlnow == 0) || (percentage == 100 ) || (interv_count > 1000))
     {
 	
 	interv_count = 0;
