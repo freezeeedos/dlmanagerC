@@ -104,8 +104,16 @@ static int progress(void *p,
 
     dlremaining = dltotal - dlnow;
     eta = dlremaining / rate;
-    eta_min = eta / 60;
-    eta_hour = eta_min / 60;
+    eta_hour = (eta / 60) / 60;
+    
+    if((eta / 60) > 59)
+    {
+	eta_min = (eta / 60) - (eta_hour * 60);
+    }
+    else
+    {
+	eta_min = eta / 60;
+    }
     
  
     if((dlnow == 0) || (percentage == 100 ) || (interv_count > 1000))
