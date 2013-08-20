@@ -76,6 +76,7 @@ static int progress(void *p,
     long curtime = 0;
     long totaltime = 0;
     int eta = 0;
+    int eta_sec = 0;
     int eta_min = 0;
     int eta_hour = 0;
     int percentage = 0;
@@ -114,6 +115,15 @@ static int progress(void *p,
     {
 	eta_min = eta / 60;
     }
+
+    if(eta > 59)
+    {
+	eta_sec = (dlremaining / rate) - ((eta_hour * 3600) + (eta_min * 60));
+    }
+    else
+    {
+	eta_sec = eta;
+    }
     
  
     if((dlnow == 0) || (percentage == 100 ) || (interv_count > 1000))
@@ -149,7 +159,7 @@ static int progress(void *p,
 	    if(kbrate > 1024)
 		fprintf(stdout, "%5d mB/s", mbrate);
 	    fprintf(stdout, "    eta: ");
-	    fprintf(stdout, " %dh%dm%ds      ", eta_hour, eta_min, (eta - (eta_min*60)));
+	    fprintf(stdout, " %dh%dm%ds      ", eta_hour, eta_min, eta_sec);
 	}
     }
 //     printf(" Interv count=%d   ", interv_count);
