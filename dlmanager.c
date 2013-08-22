@@ -321,8 +321,14 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
             curl_free(pagefilename);
 	    curl_easy_reset(curl);
             return 0;
+	case 60:
+	    fprintf(stderr, "Peer certificate cannot be authenticated with known CA certificates.\n");
+            fclose(pagefile);
+            curl_free(pagefilename);
+	    curl_easy_reset(curl);
+            return 0;
 	case 51:
-	    fprintf(stderr, "Failed to verify SSL cert\n");
+	    fprintf(stderr, "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.\n");
             fclose(pagefile);
             curl_free(pagefilename);
 	    curl_easy_reset(curl);
