@@ -159,7 +159,7 @@ static int progress(void *p,
 	    if(kbrate > 1024)
 		fprintf(stdout, "%5d mB/s", mbrate);
 	    fprintf(stdout, "    eta: ");
-	    fprintf(stdout, " %dh%dm%ds      ", eta_hour, eta_min, eta_sec);
+	    fprintf(stdout, " %dh%dm%ds   ", eta_hour, eta_min, eta_sec);
 	}
     }
 //     printf(" Interv count=%d   ", interv_count);
@@ -303,7 +303,7 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
         fprintf(stdout, "Getting '%s':\n", pagefilename);
 
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     curl_easy_setopt(curl, CURLOPT_RANGE, "0-1");
@@ -317,6 +317,12 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     {
         case 78:
             fprintf(stderr, "Remote file not found\n");
+            fclose(pagefile);
+            curl_free(pagefilename);
+	    curl_easy_reset(curl);
+            return 0;
+	case 51:
+	    fprintf(stderr, "Failed to verify SSL cert\n");
             fclose(pagefile);
             curl_free(pagefilename);
 	    curl_easy_reset(curl);
@@ -385,7 +391,7 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     }
     
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
