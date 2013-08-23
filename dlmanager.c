@@ -171,7 +171,7 @@ char *getfilename(CURL *curl, char *link)
 {
     int i = 0;
     int j = 0;
-    int k = -1;
+    int k = 0;
     int mark = -1;
     char name[1000];
     char *nameret = NULL;
@@ -186,8 +186,11 @@ char *getfilename(CURL *curl, char *link)
 
     for(j=mark+1;j<i;j++)
     {
-	k++;
-	name[k] = link[j];
+	if((link[j] != '\r') && (link[j] != '\n'))
+	{
+	    name[k] = link[j];
+	    k++;
+	}
     }
     name[k] = '\0';
     nameret = curl_easy_unescape( curl , name , 0 , 0 );
