@@ -99,8 +99,7 @@ static int progress(void *p,
     gbnow = mbnow / 1024;
     gbtotal = mbtotal / 1024;
     
-    if(curtime > startime)
-	totaltime = curtime - startime;
+    totaltime = curtime - startime;
     
     if(totaltime > 0)
     {
@@ -125,7 +124,7 @@ static int progress(void *p,
 	eta_min = eta / 60;
     }
 
-    if(eta > 59 && rate > 0)
+    if((eta > 59) && (rate > 0))
     {
 	eta_sec = (dlremaining / rate) - ((eta_hour * 3600) + (eta_min * 60));
     }
