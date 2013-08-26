@@ -233,6 +233,7 @@ int getlist(const char *filename)
 	    }
 	}
     curl_free(url_clean);
+    curl_easy_reset(curl);
     }
     
     
@@ -297,35 +298,29 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
         case 78:
             fprintf(stderr, "Remote file not found\n");
             fclose(pagefile);
-	    curl_easy_reset(curl);
             return 0;
 	case 60:
 	    fprintf(stderr, "Peer certificate cannot be authenticated with known CA certificates.\n");
             fclose(pagefile);
-	    curl_easy_reset(curl);
             return 0;
 	case 51:
 	    fprintf(stderr, "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.\n");
             fclose(pagefile);
-	    curl_easy_reset(curl);
             return 0;
         case 22:
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
             fprintf(stderr, "Web server returned %d                   \n", httpcode);
             fclose(pagefile);
-	    curl_easy_reset(curl);
             return 0;
             break;
         case 3:
             fprintf(stderr, "Badly formatted URL.Ignoring...\n");
             fclose(pagefile);
-	    curl_easy_reset(curl);
             return 0;
             break;
         case 1:
             fprintf(stderr, "Unsupported protocol.Ignoring...\n");
             fclose(pagefile);
-	    curl_easy_reset(curl);
             return 0;
             break;
         default:
@@ -387,7 +382,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     {
         fprintf(stdout, "\nfile already complete\n");
         fclose(pagefile);
-	curl_easy_reset(curl);
         return 0;
     }
 
@@ -398,14 +392,12 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
             perror("Download failed");
             fclose(pagefile);
         }
-	curl_easy_reset(curl);
         return -1;
     }
 	
 	
     fclose(pagefile);
     fprintf(stdout, "\n");
-    curl_easy_reset(curl);
     return 0;
 }
 
