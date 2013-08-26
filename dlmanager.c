@@ -168,35 +168,6 @@ static int progress(void *p,
     return 0;
 }
 
-// char *getfilename(CURL *curl, char *link)
-// {
-//     int i = 0;
-//     int j = 0;
-//     int k = 0;
-//     int mark = -1;
-//     char name[1000];
-//     char *nameret = NULL;
-//    
-//     for(i=0;link[i] != '\0';i++)
-//     {
-// 	if(link[i] == '/')
-// 	{
-// 	    mark = i;
-// 	}
-//     }
-// 
-//     for(j=mark+1;j<i;j++)
-//     {
-// 	if((link[j] != '\r') && (link[j] != '\n'))
-// 	{
-// 	    name[k] = link[j];
-// 	    k++;
-// 	}
-//     }
-//     name[k] = '\0';
-//     nameret = curl_easy_unescape( curl , name , 0 , 0 );
-//     return nameret;
-// }
 
 int getlist(const char *filename)
 {
@@ -206,6 +177,7 @@ int getlist(const char *filename)
     struct failures failed[1000];
     char line[1000];
     char *url;
+    char *url_clean;
     int ret;
     int i = 0;
     int fail = 0;
@@ -239,15 +211,16 @@ int getlist(const char *filename)
 	    continue;
 	
 	url = line;
+	url_clean = curl_easy_unescape(curl, url, 0, 0);
         i = 0;
-	ret = getlink(url, &prog, curl, i);
+	ret = getlink(url_clean, &prog, curl, i);
 	if(ret == -1)
 	{
             for(i=1;i<NTRYMAX+1;i++)
 	    {
                 usleep(1000);
                 fprintf(stderr, "[Try %d]\n", (i+1));
-                ret = getlink(url, &prog, curl, i);
+                ret = getlink(url_clean, &prog, curl, i);
                 if(ret == 0)
                 {
                     break;
@@ -266,6 +239,7 @@ int getlist(const char *filename)
     curl_global_cleanup();
     fclose(listfile);
     unlink(filename);
+    curl_free(url_clean);
     
     if(fail != 0)
     {
@@ -323,40 +297,34 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
         case 78:
             fprintf(stderr, "Remote file not found\n");
             fclose(pagefile);
-            curl_free(pagefilename);
 	    curl_easy_reset(curl);
             return 0;
 	case 60:
 	    fprintf(stderr, "Peer certificate cannot be authenticated with known CA certificates.\n");
             fclose(pagefile);
-            curl_free(pagefilename);
 	    curl_easy_reset(curl);
             return 0;
 	case 51:
 	    fprintf(stderr, "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.\n");
             fclose(pagefile);
-            curl_free(pagefilename);
 	    curl_easy_reset(curl);
             return 0;
         case 22:
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
             fprintf(stderr, "Web server returned %d                   \n", httpcode);
             fclose(pagefile);
-            curl_free(pagefilename);
 	    curl_easy_reset(curl);
             return 0;
             break;
         case 3:
             fprintf(stderr, "Badly formatted URL.Ignoring...\n");
             fclose(pagefile);
-            curl_free(pagefilename);
 	    curl_easy_reset(curl);
             return 0;
             break;
         case 1:
             fprintf(stderr, "Unsupported protocol.Ignoring...\n");
             fclose(pagefile);
-            curl_free(pagefilename);
 	    curl_easy_reset(curl);
             return 0;
             break;
@@ -366,7 +334,7 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     
     fclose(pagefile);
     curl_easy_reset(curl);
-    prog->filename = pagefilename;
+//     prog->filename = pagefilename_clean;
     
     if((stat(pagefilename, &statbuf) == 0))
     {
@@ -419,7 +387,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     {
         fprintf(stdout, "\nfile already complete\n");
         fclose(pagefile);
-        curl_free(pagefilename);
 	curl_easy_reset(curl);
         return 0;
     }
@@ -431,7 +398,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
             perror("Download failed");
             fclose(pagefile);
         }
-        curl_free(pagefilename);
 	curl_easy_reset(curl);
         return -1;
     }
@@ -439,7 +405,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
 	
     fclose(pagefile);
     fprintf(stdout, "\n");
-    curl_free(pagefilename);
     curl_easy_reset(curl);
     return 0;
 }
