@@ -125,7 +125,7 @@ static int progress(void *p,
 	eta_min = eta / 60;
     }
 
-    if(eta > 59)
+    if(eta > 59 && rate > 0)
     {
 	eta_sec = (dlremaining / rate) - ((eta_hour * 3600) + (eta_min * 60));
     }
