@@ -89,8 +89,9 @@ static int progress(void *p,
     curtime = time(NULL);
     interv_count++;
     
+    if(dltotal > 0)
+	percentage = (dlnow/dltotal) * 100;
     
-    percentage = (dlnow/dltotal) * 100;
     kbnow = dlnow / 1024;
     kbtotal = dltotal / 1024;
     mbnow = kbnow / 1024;
@@ -98,14 +99,21 @@ static int progress(void *p,
     gbnow = mbnow / 1024;
     gbtotal = mbtotal / 1024;
     
-    totaltime = curtime - startime;
+    if(curtime > startime)
+	totaltime = curtime - startime;
     
-    rate = dlnow/totaltime;
-    kbrate = kbnow/totaltime;
-    mbrate = mbnow/totaltime;
+    if(totaltime > 0)
+    {
+	rate = dlnow/totaltime;
+	kbrate = kbnow/totaltime;
+	mbrate = mbnow/totaltime;
+    }
 
     dlremaining = dltotal - dlnow;
-    eta = dlremaining / rate;
+    
+    if(rate > 0)
+	eta = dlremaining / rate;
+    
     eta_hour = (eta / 60) / 60;
     
     if((eta / 60) > 59)
