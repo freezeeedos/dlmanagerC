@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #include <curl/curl.h>
 #include "dlmanager.h"
@@ -167,35 +168,35 @@ static int progress(void *p,
     return 0;
 }
 
-char *getfilename(CURL *curl, char *link)
-{
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    int mark = -1;
-    char name[1000];
-    char *nameret = NULL;
-   
-    for(i=0;link[i] != '\0';i++)
-    {
-	if(link[i] == '/')
-	{
-	    mark = i;
-	}
-    }
-
-    for(j=mark+1;j<i;j++)
-    {
-	if((link[j] != '\r') && (link[j] != '\n'))
-	{
-	    name[k] = link[j];
-	    k++;
-	}
-    }
-    name[k] = '\0';
-    nameret = curl_easy_unescape( curl , name , 0 , 0 );
-    return nameret;
-}
+// char *getfilename(CURL *curl, char *link)
+// {
+//     int i = 0;
+//     int j = 0;
+//     int k = 0;
+//     int mark = -1;
+//     char name[1000];
+//     char *nameret = NULL;
+//    
+//     for(i=0;link[i] != '\0';i++)
+//     {
+// 	if(link[i] == '/')
+// 	{
+// 	    mark = i;
+// 	}
+//     }
+// 
+//     for(j=mark+1;j<i;j++)
+//     {
+// 	if((link[j] != '\r') && (link[j] != '\n'))
+// 	{
+// 	    name[k] = link[j];
+// 	    k++;
+// 	}
+//     }
+//     name[k] = '\0';
+//     nameret = curl_easy_unescape( curl , name , 0 , 0 );
+//     return nameret;
+// }
 
 int getlist(const char *filename)
 {
@@ -224,11 +225,11 @@ int getlist(const char *filename)
     prog.curl = curl;
     while(fgets(line, 1000, listfile) != NULL)
     {
-//         for(i = 0;line[i] != '\0';i++)
-// 	{
-// 	    if((line[i] == '\r') || (line[i] == '\n'))
-// 		line[i] = '\0';
-// 	}
+        for(i = 0;line[i] != '\0';i++)
+	{
+	    if((line[i] == '\r') || (line[i] == '\n'))
+		line[i] = '\0';
+	}
 	
 	for(i = 0;line[i] != '\0';i++);
 	
@@ -299,7 +300,8 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     interv_count = 0;
 
 
-    pagefilename = getfilename(curl, link);
+//     pagefilename = getfilename(curl, link);
+    pagefilename = basename(link);
     pagefile = fopen("/dev/null", "w");
 
     if(ntry == 0)
