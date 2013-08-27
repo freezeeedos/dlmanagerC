@@ -24,7 +24,6 @@
 #include <libgen.h>
 
 #include <curl/curl.h>
-#include "dlmanager.h"
 
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
 #define NTRYMAX 50
