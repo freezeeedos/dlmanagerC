@@ -25,14 +25,12 @@
 
 #include <curl/curl.h>
 
-#define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
 #define NTRYMAX 50
 
 
-struct myprogress {
-    double lastruntime;
-    CURL *curl;
-    char *filename;
+struct myprogress
+{
+    long startime;
 };
 
 struct txteditors
@@ -53,19 +51,17 @@ struct completed
 static size_t write_data(void *ptr, 
                          size_t size, 
                          size_t nmemb, void *stream);
-static int progress(void *p,
+static int progress(struct myprogress *prog,
                     double dltotal, double dlnow,
                     double ultotal, double ulnow);
 char *getfilename(CURL *curl, char *link);
 int getlist(const char *filename);
 int getlink(char *link, 
-            struct myprogress 
-            *prog, CURL *curl, int ntry);
+            CURL *curl, int ntry);
 int edit(const char *file);
 
-long startime = 0;
-int interv_count = 0;
 
+int interv_count = 0;
 
 int main(int argc, char *argv[])
 {
@@ -100,7 +96,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
     return written;
 }
 
-static int progress(void *p,
+static int progress(struct myprogress *prog,
 		    double dltotal, double dlnow,
 		    double ultotal, double ulnow)
 {
@@ -111,6 +107,7 @@ static int progress(void *p,
     double gbnow = 0;
     double gbtotal = 0;
     double dlremaining = 0;
+    long startime = 0;
     long curtime = 0;
     long totaltime = 0;
     int eta = 0;
@@ -122,7 +119,7 @@ static int progress(void *p,
     int mbrate = 0;
     int rate = 0;
 
-    
+    startime = prog->startime;
     curtime = time(NULL);
     interv_count++;
     
@@ -217,7 +214,6 @@ int getlist(const char *filename)
 {
     CURL *curl;
     FILE *listfile;
-    struct myprogress prog;
     struct failures failed[1000];
     char line[1000];
     char *url;
@@ -237,8 +233,6 @@ int getlist(const char *filename)
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
-    prog.lastruntime = 0;
-    prog.curl = curl;
     while(fgets(line, 1000, listfile) != NULL)
     {
         for(i = 0;line[i] != '\0';i++)
@@ -257,14 +251,14 @@ int getlist(const char *filename)
 	url = line;
 	url_clean = curl_easy_unescape(curl, url, 0, 0);
         i = 0;
-	ret = getlink(url_clean, &prog, curl, i);
+	ret = getlink(url_clean, curl, i);
 	if(ret == -1)
 	{
             for(i=1;i<NTRYMAX+1;i++)
 	    {
                 usleep(1000);
                 fprintf(stderr, "[Try %d]\n", (i+1));
-                ret = getlink(url_clean, &prog, curl, i);
+                ret = getlink(url_clean, curl, i);
                 if(ret == 0)
                 {
                     break;
@@ -305,7 +299,7 @@ int getlist(const char *filename)
     return 0;
 }
 
-int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
+int getlink(char *link, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
@@ -314,6 +308,7 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     long dlenght = 0;
     curl_off_t existsize = 0;
     struct stat statbuf;
+    struct myprogress prog;
     
     
     interv_count = 0;
@@ -408,6 +403,8 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
         pagefile = fopen(pagefilename, "wb");
     }
     
+    prog.startime = time(NULL);
+    
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -418,7 +415,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
     
     curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
-    startime = time(NULL);
     ret = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 
