@@ -21,13 +21,48 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #include <curl/curl.h>
-#include "dlmanager.h"
 
-long startime = 0;
+#define NTRYMAX 50
+
+
+struct myprogress
+{
+    long startime;
+};
+
+struct txteditors
+{
+    char *editor;
+};
+
+struct failures
+{
+    char *link;
+};
+
+struct completed
+{
+    char *link;
+};
+
+static size_t write_data(void *ptr, 
+                         size_t size, 
+                         size_t nmemb, void *stream);
+static int progress(struct myprogress *prog,
+                    double dltotal, double dlnow,
+                    double ultotal, double ulnow);
+char *getfilename(CURL *curl, char *link);
+int getlist(const char *filename);
+int manage_ret(CURL *curl, int ret);
+int getlink(char *link, 
+            CURL *curl, int ntry);
+int edit(const char *file);
+
+
 int interv_count = 0;
-
 
 int main(int argc, char *argv[])
 {
@@ -62,7 +97,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
     return written;
 }
 
-static int progress(void *p,
+static int progress(struct myprogress *prog,
 		    double dltotal, double dlnow,
 		    double ultotal, double ulnow)
 {
@@ -73,6 +108,7 @@ static int progress(void *p,
     double gbnow = 0;
     double gbtotal = 0;
     double dlremaining = 0;
+    long startime = 0;
     long curtime = 0;
     long totaltime = 0;
     int eta = 0;
@@ -84,12 +120,13 @@ static int progress(void *p,
     int mbrate = 0;
     int rate = 0;
 
-    
+    startime = prog->startime;
     curtime = time(NULL);
     interv_count++;
     
+    if(dltotal > 0)
+	percentage = (dlnow/dltotal) * 100;
     
-    percentage = (dlnow/dltotal) * 100;
     kbnow = dlnow / 1024;
     kbtotal = dltotal / 1024;
     mbnow = kbnow / 1024;
@@ -99,12 +136,18 @@ static int progress(void *p,
     
     totaltime = curtime - startime;
     
-    rate = dlnow/totaltime;
-    kbrate = kbnow/totaltime;
-    mbrate = mbnow/totaltime;
+    if(totaltime > 0)
+    {
+	rate = dlnow/totaltime;
+	kbrate = kbnow/totaltime;
+	mbrate = mbnow/totaltime;
+    }
 
     dlremaining = dltotal - dlnow;
-    eta = dlremaining / rate;
+    
+    if(rate > 0)
+	eta = dlremaining / rate;
+    
     eta_hour = (eta / 60) / 60;
     
     if((eta / 60) > 59)
@@ -116,7 +159,7 @@ static int progress(void *p,
 	eta_min = eta / 60;
     }
 
-    if(eta > 59)
+    if((eta > 59) && (rate > 0))
     {
 	eta_sec = (dlremaining / rate) - ((eta_hour * 3600) + (eta_min * 60));
     }
@@ -167,44 +210,15 @@ static int progress(void *p,
     return 0;
 }
 
-char *getfilename(CURL *curl, char *link)
-{
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    int mark = -1;
-    char name[1000];
-    char *nameret = NULL;
-   
-    for(i=0;link[i] != '\0';i++)
-    {
-	if(link[i] == '/')
-	{
-	    mark = i;
-	}
-    }
-
-    for(j=mark+1;j<i;j++)
-    {
-	if((link[j] != '\r') && (link[j] != '\n'))
-	{
-	    name[k] = link[j];
-	    k++;
-	}
-    }
-    name[k] = '\0';
-    nameret = curl_easy_unescape( curl , name , 0 , 0 );
-    return nameret;
-}
 
 int getlist(const char *filename)
 {
     CURL *curl;
     FILE *listfile;
-    struct myprogress prog;
     struct failures failed[1000];
     char line[1000];
     char *url;
+    char *url_clean;
     int ret;
     int i = 0;
     int fail = 0;
@@ -220,15 +234,13 @@ int getlist(const char *filename)
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
-    prog.lastruntime = 0;
-    prog.curl = curl;
     while(fgets(line, 1000, listfile) != NULL)
     {
-//         for(i = 0;line[i] != '\0';i++)
-// 	{
-// 	    if((line[i] == '\r') || (line[i] == '\n'))
-// 		line[i] = '\0';
-// 	}
+        for(i = 0;line[i] != '\0';i++)
+	{
+	    if((line[i] == '\r') || (line[i] == '\n'))
+		line[i] = '\0';
+	}
 	
 	for(i = 0;line[i] != '\0';i++);
 	
@@ -238,15 +250,16 @@ int getlist(const char *filename)
 	    continue;
 	
 	url = line;
+	url_clean = curl_easy_unescape(curl, url, 0, 0);
         i = 0;
-	ret = getlink(url, &prog, curl, i);
+	ret = getlink(url_clean, curl, i);
 	if(ret == -1)
 	{
             for(i=1;i<NTRYMAX+1;i++)
 	    {
                 usleep(1000);
                 fprintf(stderr, "[Try %d]\n", (i+1));
-                ret = getlink(url, &prog, curl, i);
+                ret = getlink(url_clean, curl, i);
                 if(ret == 0)
                 {
                     break;
@@ -258,6 +271,8 @@ int getlist(const char *filename)
                 }
 	    }
 	}
+    curl_free(url_clean);
+    curl_easy_reset(curl);
     }
     
     
@@ -285,21 +300,64 @@ int getlist(const char *filename)
     return 0;
 }
 
-int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
+int manage_ret(CURL *curl, int ret)
+{
+    int httpcode = 0;
+    char *msg = NULL;
+
+	switch(ret)
+	{
+	    case 78:
+		msg = "Remote file not found";
+		break;
+	    case 60:
+		msg = "Peer certificate cannot be authenticated with known CA certificates.";
+		break;
+	    case 51:
+		msg = "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.";
+		break;
+	    case 22:
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
+		msg = "Web server returned";
+		break;
+	    case 3:
+		msg = "Badly formatted URL.Ignoring...";
+		break;
+	    case 1:
+		msg = "Unsupported protocol.Ignoring...";
+		break;
+	    default:
+		break;
+	}
+	
+	if(msg != NULL)
+	{
+	    fprintf(stderr, "%s", msg);
+	    if(httpcode != 0)
+		fprintf(stderr, " %d                    ", httpcode);
+	    fprintf(stderr, "\n");
+	    return 1;
+	}
+	
+	return 0;
+}
+
+int getlink(char *link, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
     int ret;
-    int httpcode;
     long dlenght = 0;
     curl_off_t existsize = 0;
     struct stat statbuf;
+    struct myprogress prog;
     
     
     interv_count = 0;
 
 
-    pagefilename = getfilename(curl, link);
+//     pagefilename = getfilename(curl, link);
+    pagefilename = basename(link);
     pagefile = fopen("/dev/null", "w");
 
     if(ntry == 0)
@@ -316,55 +374,13 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     
     ret = curl_easy_perform(curl);
 //         printf("CURL: %d\n", ret);
-    switch(ret)
-    {
-        case 78:
-            fprintf(stderr, "Remote file not found\n");
-            fclose(pagefile);
-            curl_free(pagefilename);
-	    curl_easy_reset(curl);
-            return 0;
-	case 60:
-	    fprintf(stderr, "Peer certificate cannot be authenticated with known CA certificates.\n");
-            fclose(pagefile);
-            curl_free(pagefilename);
-	    curl_easy_reset(curl);
-            return 0;
-	case 51:
-	    fprintf(stderr, "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.\n");
-            fclose(pagefile);
-            curl_free(pagefilename);
-	    curl_easy_reset(curl);
-            return 0;
-        case 22:
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
-            fprintf(stderr, "Web server returned %d                   \n", httpcode);
-            fclose(pagefile);
-            curl_free(pagefilename);
-	    curl_easy_reset(curl);
-            return 0;
-            break;
-        case 3:
-            fprintf(stderr, "Badly formatted URL.Ignoring...\n");
-            fclose(pagefile);
-            curl_free(pagefilename);
-	    curl_easy_reset(curl);
-            return 0;
-            break;
-        case 1:
-            fprintf(stderr, "Unsupported protocol.Ignoring...\n");
-            fclose(pagefile);
-            curl_free(pagefilename);
-	    curl_easy_reset(curl);
-            return 0;
-            break;
-        default:
-            break;
-    }
-    
     fclose(pagefile);
+    
+    if(manage_ret(curl, ret) == 1)
+	return 0;
+    
     curl_easy_reset(curl);
-    prog->filename = pagefilename;
+//     prog->filename = pagefilename_clean;
     
     if((stat(pagefilename, &statbuf) == 0))
     {
@@ -399,6 +415,8 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
         pagefile = fopen(pagefilename, "wb");
     }
     
+    prog.startime = time(NULL);
+    
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -409,7 +427,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
     
     curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
-    startime = time(NULL);
     ret = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
 
@@ -417,8 +434,6 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
     {
         fprintf(stdout, "\nfile already complete\n");
         fclose(pagefile);
-        curl_free(pagefilename);
-	curl_easy_reset(curl);
         return 0;
     }
 
@@ -429,16 +444,12 @@ int getlink(char *link, struct myprogress *prog, CURL *curl, int ntry)
             perror("Download failed");
             fclose(pagefile);
         }
-        curl_free(pagefilename);
-	curl_easy_reset(curl);
         return -1;
     }
 	
 	
     fclose(pagefile);
     fprintf(stdout, "\n");
-    curl_free(pagefilename);
-    curl_easy_reset(curl);
     return 0;
 }
 
