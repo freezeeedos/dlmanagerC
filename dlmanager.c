@@ -56,6 +56,7 @@ static int progress(struct myprogress *prog,
                     double ultotal, double ulnow);
 char *getfilename(CURL *curl, char *link);
 int getlist(const char *filename);
+int manage_ret(CURL *curl, int ret);
 int getlink(char *link, 
             CURL *curl, int ntry);
 int edit(const char *file);
@@ -299,12 +300,53 @@ int getlist(const char *filename)
     return 0;
 }
 
+int manage_ret(CURL *curl, int ret)
+{
+    int httpcode = 0;
+    char *msg = NULL;
+
+	switch(ret)
+	{
+	    case 78:
+		msg = "Remote file not found";
+		break;
+	    case 60:
+		msg = "Peer certificate cannot be authenticated with known CA certificates.";
+		break;
+	    case 51:
+		msg = "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.";
+		break;
+	    case 22:
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
+		msg = "Web server returned";
+		break;
+	    case 3:
+		msg = "Badly formatted URL.Ignoring...";
+		break;
+	    case 1:
+		msg = "Unsupported protocol.Ignoring...";
+		break;
+	    default:
+		break;
+	}
+	
+	if(msg != NULL)
+	{
+	    fprintf(stderr, "%s", msg);
+	    if(httpcode != 0)
+		fprintf(stderr, " %d                    ", httpcode);
+	    fprintf(stderr, "\n");
+	    return 1;
+	}
+	
+	return 0;
+}
+
 int getlink(char *link, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
     int ret;
-    int httpcode;
     long dlenght = 0;
     curl_off_t existsize = 0;
     struct stat statbuf;
@@ -332,41 +374,11 @@ int getlink(char *link, CURL *curl, int ntry)
     
     ret = curl_easy_perform(curl);
 //         printf("CURL: %d\n", ret);
-    switch(ret)
-    {
-        case 78:
-            fprintf(stderr, "Remote file not found\n");
-            fclose(pagefile);
-            return 0;
-	case 60:
-	    fprintf(stderr, "Peer certificate cannot be authenticated with known CA certificates.\n");
-            fclose(pagefile);
-            return 0;
-	case 51:
-	    fprintf(stderr, "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.\n");
-            fclose(pagefile);
-            return 0;
-        case 22:
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
-            fprintf(stderr, "Web server returned %d                   \n", httpcode);
-            fclose(pagefile);
-            return 0;
-            break;
-        case 3:
-            fprintf(stderr, "Badly formatted URL.Ignoring...\n");
-            fclose(pagefile);
-            return 0;
-            break;
-        case 1:
-            fprintf(stderr, "Unsupported protocol.Ignoring...\n");
-            fclose(pagefile);
-            return 0;
-            break;
-        default:
-            break;
-    }
-    
     fclose(pagefile);
+    
+    if(manage_ret(curl, ret) == 1)
+	return 0;
+    
     curl_easy_reset(curl);
 //     prog->filename = pagefilename_clean;
     
