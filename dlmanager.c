@@ -242,7 +242,7 @@ int getlist(const char *filename)
 		line[i] = '\0';
 	}
 	
-	for(i = 0;line[i] != '\0';i++);
+	i = strlen(line);
 	
 	if(i < 5)
 	    continue;
@@ -350,11 +350,9 @@ int getlink(char *link, CURL *curl, int ntry)
     long dlenght = 0;
     curl_off_t existsize = 0;
     struct stat statbuf;
-    struct myprogress prog;
-    
+    struct myprogress prog; 
     
     interv_count = 0;
-
 
 //     pagefilename = getfilename(curl, link);
     pagefilename = basename(link);
