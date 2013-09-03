@@ -255,7 +255,7 @@ int getlist(const char *filename)
 	ret = getlink(url_clean, curl, i);
 	if(ret == -1)
 	{
-            for(i=1;i<NTRYMAX+1;i++)
+            for(i++;i<NTRYMAX+1;i++)
 	    {
                 usleep(1000);
                 fprintf(stderr, "[Try %d]\n", (i+1));
@@ -266,8 +266,8 @@ int getlist(const char *filename)
                 }
                 if((ret == -1) && (i == NTRYMAX))
                 {
-                    fail++;
                     failed[fail].link = strdup(line);
+                    fail++;
                 }
 	    }
 	}
@@ -284,7 +284,7 @@ int getlist(const char *filename)
     if(fail != 0)
     {
         listfile = fopen(filename, "w");
-        for(i=1;i<fail+1;i++)
+        for(i=0;i<fail;i++)
         {
             if(i == 1)
                 fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n");
