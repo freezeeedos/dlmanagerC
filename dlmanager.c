@@ -286,7 +286,7 @@ int getlist(const char *filename)
         listfile = fopen(filename, "w");
         for(i=0;i<fail;i++)
         {
-            if(i == 1)
+            if(i == 0)
                 fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n");
             
             fprintf(stderr, "failed: %s\n", failed[i].link);
