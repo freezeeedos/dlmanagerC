@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     editval = edit(listfilename);
     if(editval == -1)
     {
-        fprintf(stderr, "unable to open file for edition.\n");
+        fprintf(stderr, "\nUnable to open file for edition.\n");
         return -1;
     }
 
@@ -484,7 +484,9 @@ int edit(const char *file)
     }
     if(retval != 0)
     {
-        fprintf(stderr, "None of the text editors I tried seem to be present on this system.\n");
+        fprintf(stderr, "None of the text editors I tried seem to be installed on this system.\n"
+	    "Please install one of the following:\n" "nano (easier), vi, vim, emacs\n"
+	);
 	return -1;
     }
     return 0;
