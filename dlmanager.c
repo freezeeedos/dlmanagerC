@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     getval = getlist(listfilename);
     if(getval == -1)
     {
-	fprintf(stderr, "Execution ended with errors\n");
+	fprintf(stderr, "\nExecution ended with errors\n");
 	return -1;
     }
     
@@ -286,10 +286,10 @@ int getlist(const char *filename)
         listfile = fopen(filename, "w");
         for(i=0;i<fail;i++)
         {
-            if(i == 1)
-                fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n");
+            if(i == 0)
+                fprintf(stderr, "\n\n***FAILED DOWNLOADS:\n\n");
             
-            fprintf(stderr, "failed: %s\n", failed[i].link);
+            fprintf(stderr, "   => %s\n", failed[i].link);
             fprintf(listfile, "%s\n", failed[i].link);
 	    free(failed[i].link);
         }
