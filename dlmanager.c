@@ -368,7 +368,7 @@ int getlink(char *link, CURL *curl, int ntry)
     pagefile = fopen("/dev/null", "w");
 
     if(ntry == 0)
-        fprintf(stdout, "Getting '%s':\n", pagefilename);
+        fprintf(stdout, "  => Getting '%s':\n", pagefilename);
 
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
@@ -399,15 +399,15 @@ int getlink(char *link, CURL *curl, int ntry)
         pagefile = fopen(pagefilename, "a+");
         if(ntry == 0)
         {
-            printf("Already downloaded: ");
+            printf(" (Already downloaded: ");
             if(statbuf.st_size < 1024)
-                printf("%5.1f B\n", (float)statbuf.st_size);
+                printf("%5.1f B)\n", (float)statbuf.st_size);
             if((kbsize < 1024) && (statbuf.st_size > 1024))
-                printf("%5.1f kB\n", kbsize);
+                printf("%5.1f kB)\n", kbsize);
             if((kbsize > 1024) && (mbsize < 1024))
-                printf("%5.1f mB\n", mbsize);
+                printf("%5.1f mB)\n", mbsize);
             if(mbsize > 1024)
-                printf("%5.1f GB\n", gbsize);
+                printf("%5.1f GB)\n", gbsize);
         }
         
     }
@@ -439,7 +439,7 @@ int getlink(char *link, CURL *curl, int ntry)
 
     if((existsize > 0) && (dlenght == 0) && (ret == 33))
     {
-        fprintf(stdout, "\nfile already complete\n");
+        fprintf(stdout, "\n (file already complete)\n");
         fclose(pagefile);
         return 0;
     }
