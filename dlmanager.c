@@ -302,7 +302,7 @@ int getlist(const char *filename)
 
 int manage_ret(CURL *curl, int ret)
 {
-    int httpcode = 0;
+    long httpcode = 0;
     char *msg = NULL;
 
 	switch(ret)
@@ -330,11 +330,12 @@ int manage_ret(CURL *curl, int ret)
 		break;
 	}
 	
-	if(msg != NULL)
+	if(ret != 0)
 	{
-	    fprintf(stderr, "%s", msg);
+	    if(msg != NULL)
+		fprintf(stderr, "%s", msg);
 	    if(httpcode != 0)
-		fprintf(stderr, " %d                    ", httpcode);
+		fprintf(stderr, " %ld                    ", httpcode);
 	    fprintf(stderr, "\n");
 	    return 1;
 	}
