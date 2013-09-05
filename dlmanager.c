@@ -335,6 +335,8 @@ int manage_ret(CURL *curl, int ret)
 	    if(msg != NULL)
 	    {
 		fprintf(stderr, "%s", msg);
+		if(httpcode != 0)
+		    fprintf(stderr, " %ld                    ", httpcode);
 	    }
 	    else
 	    {
@@ -342,8 +344,6 @@ int manage_ret(CURL *curl, int ret)
 		       "You should check the documentation of libcurl to see what this means...",
 		       ret);
 	    }
-	    if(httpcode != 0)
-		fprintf(stderr, " %ld                    ", httpcode);
 	    fprintf(stderr, "\n");
 	    return 1;
 	}
