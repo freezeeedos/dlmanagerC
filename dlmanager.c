@@ -54,7 +54,6 @@ static size_t write_data(void *ptr,
 static int progress(struct myprogress *prog,
                     double dltotal, double dlnow,
                     double ultotal, double ulnow);
-char *getfilename(CURL *curl, char *link);
 int getlist(const char *filename);
 int manage_ret(CURL *curl, int ret);
 int getlink(char *link, 
@@ -205,7 +204,6 @@ static int progress(struct myprogress *prog,
 	    fprintf(stdout, " %dh%dm%ds   ", eta_hour, eta_min, eta_sec);
 	}
     }
-//     printf(" Interv count=%d   ", interv_count);
     fprintf(stdout, "\r");
     return 0;
 }
@@ -363,7 +361,6 @@ int getlink(char *link, CURL *curl, int ntry)
     
     interv_count = 0;
 
-//     pagefilename = getfilename(curl, link);
     pagefilename = basename(link);
     pagefile = fopen("/dev/null", "w");
 
