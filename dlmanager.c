@@ -255,7 +255,7 @@ int getlist(const char *filename)
 	{
             for(i++;i<NTRYMAX+1;i++)
 	    {
-                usleep(1000);
+                sleep(1);
                 fprintf(stderr, "[Try %d]\n", (i+1));
                 ret = getlink(url_clean, curl, i);
                 if(ret == 0)
