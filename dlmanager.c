@@ -446,8 +446,8 @@ int getlink(char *link, CURL *curl, int ntry)
         if(ntry == NTRYMAX)
         {
             perror("Download failed");
-            fclose(pagefile);
         }
+        fclose(pagefile);
         return -1;
     }
 	
