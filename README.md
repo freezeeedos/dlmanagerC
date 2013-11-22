@@ -31,4 +31,4 @@ You will need the GNU C COMPILER.
 
 TODO: 
 -----
-*fix weird bug when piping stuff in without args.
+* fix weird bug when piping stuff in without args.
