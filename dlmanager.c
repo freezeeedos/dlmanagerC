@@ -65,23 +65,31 @@ int interv_count = 0;
 
 int main(int argc, char *argv[])
 {
-    const char *listfilename = ".dlmanagerlist";
     int editval = 0;
     int getval = 0;
-    
-    
-    editval = edit(listfilename);
-    if(editval == -1)
+    const char *listfilename;
+
+    if(argv[1] && strcmp(argv[1], "-") == 0)
     {
-        fprintf(stderr, "\nUnable to open file for edition.\n");
-        return -1;
+        listfilename = "usestdin";
+    }
+    else
+    {
+        listfilename = ".dlmanagerlist";
+    
+        editval = edit(listfilename);
+        if(editval == -1)
+        {
+            fprintf(stderr, "\nUnable to open file for edition.\n");
+            return -1;
+        }
     }
 
     getval = getlist(listfilename);
     if(getval == -1)
     {
-	fprintf(stderr, "\nExecution ended with errors\n");
-	return -1;
+	    fprintf(stderr, "\nExecution ended with errors\n");
+        return -1;
     }
     
     fprintf(stdout,"\n");
@@ -222,7 +230,15 @@ int getlist(const char *filename)
     int fail = 0;
     
 
-    listfile = fopen(filename, "r");
+    if(strcmp(filename, "usestdin") == 0)
+    {
+        listfile = stdin;
+    }
+    else
+    {
+        listfile = fopen(filename, "r");
+    }
+
     if(listfile == NULL)
     {
         perror("failed to open links list");
