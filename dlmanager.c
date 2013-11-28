@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
     else
     {
         listfilename = ".dlmanagerlist";
+        printf("list is %s\n", listfilename);
     
         editval = edit(listfilename);
         if(editval == -1)
@@ -88,7 +89,7 @@ int main(int argc, char *argv[])
     getval = getlist(listfilename);
     if(getval == -1)
     {
-	    fprintf(stderr, "\nExecution ended with errors\n");
+        fprintf(stderr, "\nExecution ended with errors\n");
         return -1;
     }
     
@@ -105,8 +106,8 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 }
 
 static int progress(struct myprogress *prog,
-		    double dltotal, double dlnow,
-		    double ultotal, double ulnow)
+            double dltotal, double dlnow,
+            double ultotal, double ulnow)
 {
     double kbnow = 0;
     double kbtotal = 0;
@@ -132,7 +133,7 @@ static int progress(struct myprogress *prog,
     interv_count++;
     
     if(dltotal > 0)
-	percentage = (dlnow/dltotal) * 100;
+        percentage = (dlnow/dltotal) * 100;
     
     kbnow = dlnow / 1024;
     kbtotal = dltotal / 1024;
@@ -145,72 +146,73 @@ static int progress(struct myprogress *prog,
     
     if(totaltime > 0)
     {
-	rate = dlnow/totaltime;
-	kbrate = kbnow/totaltime;
-	mbrate = mbnow/totaltime;
+        rate = dlnow/totaltime;
+        kbrate = kbnow/totaltime;
+        mbrate = mbnow/totaltime;
     }
 
     dlremaining = dltotal - dlnow;
     
     if(rate > 0)
-	eta = dlremaining / rate;
+        eta = dlremaining / rate;
     
     eta_hour = (eta / 60) / 60;
     
     if((eta / 60) > 59)
     {
-	eta_min = (eta / 60) - (eta_hour * 60);
+        eta_min = (eta / 60) - (eta_hour * 60);
     }
     else
     {
-	eta_min = eta / 60;
+        eta_min = eta / 60;
     }
 
     if((eta > 59) && (rate > 0))
     {
-	eta_sec = (dlremaining / rate) - ((eta_hour * 3600) + (eta_min * 60));
+        eta_sec = (dlremaining / rate) - ((eta_hour * 3600) + (eta_min * 60));
     }
     else
     {
-	eta_sec = eta;
+        eta_sec = eta;
     }
     
  
     if((dlnow == 0) || (percentage == 100 ) || (interv_count > 1000))
     {
-	
-	interv_count = 0;
-	fflush(stdout);
-	
-	if(percentage < 0)
-	    percentage = 0;
-	if( percentage < 10)
-	    fprintf(stdout, "  %d", percentage);
-	if((percentage > 9) && (percentage < 100))
-	    fprintf(stdout, " %d", percentage);
-	if(percentage > 99)
-	    fprintf(stdout, "%d", percentage);
-	fprintf(stdout, "%% ");
-    //display directly the appropriate unit
-	if(dltotal < 1024)
-	    fprintf(stdout, " %5.1f/%5.1f B       ", (float)dlnow,(float)dltotal);
-	if((kbtotal < 1024) && (dltotal > 1024))
-	    fprintf(stdout, " %5.1f/%5.1f kB      ", (float)kbnow,(float)kbtotal);
-	if((kbtotal > 1024) && (mbtotal < 1024))
-	    fprintf(stdout, " %5.1f/%5.1f mB      ", (float)mbnow,(float)mbtotal);
-	if(mbtotal > 1024)
-	    fprintf(stdout, " %5.1f/%5.1f GB      ", (float)gbnow,(float)gbtotal);
-	if(rate > 0)
-	{
-	    if(rate < 1024)
-		fprintf(stdout, "%4d B/s", rate);
-	    if(kbrate < 1024)
-		fprintf(stdout, "%4d kB/s", kbrate);
-	    if(kbrate > 1024)
-		fprintf(stdout, "%5d mB/s", mbrate);
-	    fprintf(stdout, "    eta: ");
-	    fprintf(stdout, " %dh%dm%ds   ", eta_hour, eta_min, eta_sec);
-	}
+    
+        interv_count = 0;
+        fflush(stdout);
+        
+        if(percentage < 0)
+            percentage = 0;
+        if( percentage < 10)
+            fprintf(stdout, "  %d", percentage);
+        if((percentage > 9) && (percentage < 100))
+            fprintf(stdout, " %d", percentage);
+        if(percentage > 99)
+            fprintf(stdout, "%d", percentage);
+        fprintf(stdout, "%% ");
+        //display directly the appropriate unit
+        if(dltotal < 1024)
+            fprintf(stdout, " %5.1f/%5.1f B       ", (float)dlnow,(float)dltotal);
+        if((kbtotal < 1024) && (dltotal > 1024))
+            fprintf(stdout, " %5.1f/%5.1f kB      ", (float)kbnow,(float)kbtotal);
+        if((kbtotal > 1024) && (mbtotal < 1024))
+            fprintf(stdout, " %5.1f/%5.1f mB      ", (float)mbnow,(float)mbtotal);
+        if(mbtotal > 1024)
+            fprintf(stdout, " %5.1f/%5.1f GB      ", (float)gbnow,(float)gbtotal);
+        if(rate > 0)
+        {
+            if(rate < 1024)
+                fprintf(stdout, "%4d B/s", rate);
+            if(kbrate < 1024)
+                fprintf(stdout, "%4d kB/s", kbrate);
+            if(kbrate > 1024)
+                fprintf(stdout, "%5d mB/s", mbrate);
+
+            fprintf(stdout, "    eta: ");
+            fprintf(stdout, " %dh%dm%ds   ", eta_hour, eta_min, eta_sec);
+        }
     }
     fprintf(stdout, "\r");
     return 0;
@@ -251,26 +253,25 @@ int getlist(const char *filename)
     while(fgets(line, 1000, listfile) != NULL)
     {
         for(i = 0;line[i] != '\0';i++)
-	{
-	    if((line[i] == '\r') || (line[i] == '\n'))
-		line[i] = '\0';
-	}
-	
-	i = strlen(line);
-	
-	if(i < 5)
-	    continue;
-	if((line[0] == ' ') || (line[0] == '\t'))
-	    continue;
-	
-	url = line;
-	url_clean = curl_easy_unescape(curl, url, 0, 0);
+        {
+            if((line[i] == '\r') || (line[i] == '\n'))
+            line[i] = '\0';
+        }
+        
+        
+        if(strlen(line) < 8)
+            continue;
+        if((line[0] == ' ') || (line[0] == '\t'))
+            continue;
+        
+        url = line;
+        url_clean = curl_easy_unescape(curl, url, 0, 0);
         i = 0;
-	ret = getlink(url_clean, curl, i);
-	if(ret == -1)
-	{
+        ret = getlink(url_clean, curl, i);
+        if(ret == -1)
+        {
             for(i++;i<NTRYMAX+1;i++)
-	    {
+            {
                 sleep(1);
                 fprintf(stderr, "[Try %d]\n", (i+1));
                 ret = getlink(url_clean, curl, i);
@@ -283,10 +284,10 @@ int getlist(const char *filename)
                     failed[fail].link = strdup(line);
                     fail++;
                 }
-	    }
-	}
-    curl_free(url_clean);
-    curl_easy_reset(curl);
+            }
+        }
+        curl_free(url_clean);
+        curl_easy_reset(curl);
     }
     
     
@@ -305,7 +306,7 @@ int getlist(const char *filename)
             
             fprintf(stderr, "   => %s\n", failed[i].link);
             fprintf(listfile, "%s\n", failed[i].link);
-	    free(failed[i].link);
+            free(failed[i].link);
         }
         fclose(listfile);
         return -1;
@@ -319,50 +320,50 @@ int manage_ret(CURL *curl, int ret)
     long httpcode = 0;
     char *msg = NULL;
 
-	switch(ret)
-	{
-	    case 78:
-		msg = "Remote file not found";
-		break;
-	    case 60:
-		msg = "Peer certificate cannot be authenticated with known CA certificates.";
-		break;
-	    case 51:
-		msg = "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.";
-		break;
-	    case 22:
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
-		msg = "Web server returned";
-		break;
-	    case 3:
-		msg = "Badly formatted URL.Ignoring...";
-		break;
-	    case 1:
-		msg = "Unsupported protocol.Ignoring...";
-		break;
-	    default:
-		break;
-	}
-	
-	if(ret != 0)
-	{
-	    if(msg != NULL)
-	    {
-		fprintf(stderr, "%s", msg);
-		if(httpcode != 0)
-		    fprintf(stderr, " %ld                    ", httpcode);
-	    }
-	    else
-	    {
-		fprintf(stderr, "Something went wrong. libcurl returned %d\n"
-		       "You should check the documentation of libcurl to see what this means...",
-		       ret);
-	    }
-	    fprintf(stderr, "\n");
-	    return 1;
-	}
-	
-	return 0;
+    switch(ret)
+    {
+        case 78:
+            msg = "Remote file not found";
+            break;
+        case 60:
+            msg = "Peer certificate cannot be authenticated with known CA certificates.";
+            break;
+        case 51:
+            msg = "The remote server's SSL certificate or SSH md5 fingerprint was deemed not OK.";
+            break;
+        case 22:
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpcode);
+            msg = "Web server returned";
+            break;
+        case 3:
+            msg = "Badly formatted URL.Ignoring...";
+            break;
+        case 1:
+            msg = "Unsupported protocol.Ignoring...";
+            break;
+        default:
+            break;
+    }
+    
+    if(ret != 0)
+    {
+        if(msg != NULL)
+        {
+            fprintf(stderr, "%s", msg);
+            if(httpcode != 0)
+                fprintf(stderr, " %ld                    ", httpcode);
+        }
+        else
+        {
+            fprintf(stderr, "Something went wrong. libcurl returned %d\n"
+               "You should check the documentation of libcurl to see what this means...",
+               ret);
+        }
+        fprintf(stderr, "\n");
+        return 1;
+    }
+    
+    return 0;
 }
 
 int getlink(char *link, CURL *curl, int ntry)
@@ -397,7 +398,7 @@ int getlink(char *link, CURL *curl, int ntry)
     fclose(pagefile);
     
     if(manage_ret(curl, ret) == 1)
-	return 0;
+        return 0;
     
     curl_easy_reset(curl);
 //     prog->filename = pagefilename_clean;
@@ -408,7 +409,7 @@ int getlink(char *link, CURL *curl, int ntry)
         float kbsize = statbuf.st_size / 1024;
         float mbsize = kbsize / 1024;
         float gbsize = mbsize / 1024;
-	
+    
         pagefile = fopen(pagefilename, "a+");
         if(ntry == 0)
         {
@@ -466,8 +467,8 @@ int getlink(char *link, CURL *curl, int ntry)
         fclose(pagefile);
         return -1;
     }
-	
-	
+    
+    
     fclose(pagefile);
     fprintf(stdout, "\n");
     return 0;
@@ -481,7 +482,9 @@ int edit(const char *file)
     struct txteditors editors_a[5];
     struct stat statbuf;
     
-    
+    printf("list is %s\n", file);
+    fflush(stdin);
+    fclose(stdin);
     //if list does not exist, create empty file
     if(stat(file, &statbuf) == -1)
     {
@@ -499,17 +502,20 @@ int edit(const char *file)
     for(i=0;i<5;i++)
     {
         sprintf(my_cmd, "%s %s 2>/dev/null", editors_a[i].editor, file);
-	
-	retval = system(my_cmd);
-	if(retval == 0)
-	    break;
+        printf("command: %s\n", my_cmd);
+    
+        retval = system(my_cmd);
+        if(retval == 0)
+            break;
     }
     if(retval != 0)
     {
         fprintf(stderr, "None of the text editors I tried seem to be installed on this system.\n"
-	    "Please install one of the following:\n" "nano (easier), vi, vim, emacs\n"
-	);
-	return -1;
+        "Please install one of the following:\n" 
+        "nano (easier), vi, vim, emacs\n"
+        );
+        unlink(file);
+        return -1;
     }
     return 0;
 }
