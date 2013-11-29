@@ -22,6 +22,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <libgen.h>
+#include <sys/wait.h>
 
 #include <curl/curl.h>
 
@@ -69,20 +70,16 @@ int main(int argc, char *argv[])
     int getval = 0;
     const char *listfilename;
 
+    listfilename = ".dlmanagerlist";
     if(argv[1] && strcmp(argv[1], "-") == 0)
     {
         listfilename = "usestdin";
     }
-    else
+    editval = edit(listfilename);
+    if(editval == -1)
     {
-        listfilename = ".dlmanagerlist";
-    
-        editval = edit(listfilename);
-        if(editval == -1)
-        {
-            fprintf(stderr, "\nUnable to open file for edition.\n");
-            return -1;
-        }
+        fprintf(stderr, "\nUnable to open file for edition.\n");
+        return -1;
     }
 
     getval = getlist(listfilename);
@@ -481,6 +478,9 @@ int edit(const char *file)
     struct txteditors editors_a[5];
     struct stat statbuf;
     
+    if(strcmp(file, "usestdin") == 0)
+        return 0;
+
     //if list does not exist, create empty file
     if(stat(file, &statbuf) == -1)
     {
@@ -498,7 +498,6 @@ int edit(const char *file)
     for(i=0;i<5;i++)
     {
         sprintf(my_cmd, "%s %s 2>/dev/null", editors_a[i].editor, file);
-    
         retval = system(my_cmd);
         if(retval == 0)
             break;
