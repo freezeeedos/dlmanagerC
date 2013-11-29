@@ -76,7 +76,6 @@ int main(int argc, char *argv[])
     else
     {
         listfilename = ".dlmanagerlist";
-        printf("list is %s\n", listfilename);
     
         editval = edit(listfilename);
         if(editval == -1)
@@ -482,9 +481,6 @@ int edit(const char *file)
     struct txteditors editors_a[5];
     struct stat statbuf;
     
-    printf("list is %s\n", file);
-    fflush(stdin);
-    fclose(stdin);
     //if list does not exist, create empty file
     if(stat(file, &statbuf) == -1)
     {
@@ -502,7 +498,6 @@ int edit(const char *file)
     for(i=0;i<5;i++)
     {
         sprintf(my_cmd, "%s %s 2>/dev/null", editors_a[i].editor, file);
-        printf("command: %s\n", my_cmd);
     
         retval = system(my_cmd);
         if(retval == 0)
