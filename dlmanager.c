@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
     const char *listfilename;
 
     listfilename = ".dlmanagerlist";
-    if(argv[1])
+    if((argv[1]) && strcmp(argv[1], "-") == 0)
     {
-        listfilename = argv[1];
+        listfilename = "usestdin";
     }
     else
     {
@@ -497,7 +497,14 @@ int edit(const char *file)
     
     for(i=0;i<5;i++)
     {
-        sprintf(my_cmd, "%s %s 2>/dev/null", editors_a[i].editor, file);
+        if(isatty(0))
+        {
+            sprintf(my_cmd, "%s %s 2>/dev/null", editors_a[i].editor, file);
+        }
+        else
+        {
+            sprintf(my_cmd, "%s %s < /dev/tty 2>/dev/null", editors_a[i].editor, file);
+        }
         retval = system(my_cmd);
         if(retval == 0)
             break;

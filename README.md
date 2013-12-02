@@ -12,9 +12,9 @@ Sample Output:
       => Getting 'CentOS-6.4-x86_64-minimal.iso':
     100%  342.3/342.3 mB       813 kB/s    eta: 0h0m0s
     
-It is also possible to read a list of links from a file:
+It is also possible to read a list of links from stdin:
 
-    dlmanager links.txt
+    dlmanager - < links.txt
 
 Install:
 --------
