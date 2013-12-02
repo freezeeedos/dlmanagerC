@@ -71,15 +71,18 @@ int main(int argc, char *argv[])
     const char *listfilename;
 
     listfilename = ".dlmanagerlist";
-    if(argv[1] && strcmp(argv[1], "-") == 0)
+    if(argv[1])
     {
-        listfilename = "usestdin";
+        listfilename = argv[1];
     }
-    editval = edit(listfilename);
-    if(editval == -1)
+    else
     {
-        fprintf(stderr, "\nUnable to open file for edition.\n");
-        return -1;
+        editval = edit(listfilename);
+        if(editval == -1)
+        {
+            fprintf(stderr, "\nUnable to open file for edition.\n");
+            return -1;
+        }
     }
 
     getval = getlist(listfilename);
@@ -478,9 +481,6 @@ int edit(const char *file)
     struct txteditors editors_a[5];
     struct stat statbuf;
     
-    if(strcmp(file, "usestdin") == 0)
-        return 0;
-
     //if list does not exist, create empty file
     if(stat(file, &statbuf) == -1)
     {
