@@ -378,13 +378,12 @@ int getlink(char *link, CURL *curl, int ntry)
     interv_count = 0;
 
     pagefilename = basename(link);
+    filename_clean = curl_easy_unescape(curl, pagefilename, 0, 0);
     pagefile = fopen("/dev/null", "w");
 
     if(ntry == 0)
-        filename_clean = curl_easy_unescape(curl, pagefilename, 0, 0);
         fprintf(stdout, "  => Getting '%s':\n", filename_clean);
 
-    curl_free(filename_clean);
 
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
@@ -412,7 +411,7 @@ int getlink(char *link, CURL *curl, int ntry)
         float mbsize = kbsize / 1024;
         float gbsize = mbsize / 1024;
     
-        pagefile = fopen(pagefilename, "a+");
+        pagefile = fopen(filename_clean, "a+");
         if(ntry == 0)
         {
             printf(" (Already downloaded: ");
@@ -435,9 +434,10 @@ int getlink(char *link, CURL *curl, int ntry)
     else
     {
 //         curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE , 0);
-        pagefile = fopen(pagefilename, "wb");
+        pagefile = fopen(filename_clean, "wb");
     }
     
+    curl_free(filename_clean);
     prog.startime = time(NULL);
     
     curl_easy_setopt(curl, CURLOPT_URL, link);
