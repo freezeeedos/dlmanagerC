@@ -227,7 +227,6 @@ int getlist(const char *filename)
     struct failures failed[1000];
     char line[1000];
     char *url;
-    char *url_clean;
     int ret;
     int i = 0;
     int fail = 0;
@@ -266,16 +265,15 @@ int getlist(const char *filename)
             continue;
         
         url = line;
-        url_clean = curl_easy_unescape(curl, url, 0, 0);
         i = 0;
-        ret = getlink(url_clean, curl, i);
+        ret = getlink(url, curl, i);
         if(ret == -1)
         {
             for(i++;i<NTRYMAX+1;i++)
             {
                 sleep(1);
                 fprintf(stderr, "[Try %d]\n", (i+1));
-                ret = getlink(url_clean, curl, i);
+                ret = getlink(url, curl, i);
                 if(ret == 0)
                 {
                     break;
@@ -287,7 +285,6 @@ int getlist(const char *filename)
                 }
             }
         }
-        curl_free(url_clean);
         curl_easy_reset(curl);
     }
     
@@ -371,6 +368,7 @@ int getlink(char *link, CURL *curl, int ntry)
 {
     FILE *pagefile;
     char *pagefilename;
+    char *filename_clean;
     int ret;
     long dlenght = 0;
     curl_off_t existsize = 0;
@@ -383,7 +381,10 @@ int getlink(char *link, CURL *curl, int ntry)
     pagefile = fopen("/dev/null", "w");
 
     if(ntry == 0)
-        fprintf(stdout, "  => Getting '%s':\n", pagefilename);
+        filename_clean = curl_easy_unescape(curl, pagefilename, 0, 0);
+        fprintf(stdout, "  => Getting '%s':\n", filename_clean);
+
+    curl_free(filename_clean);
 
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
