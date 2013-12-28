@@ -27,8 +27,9 @@ You will need the GNU C COMPILER.
 * './build.sh'
 * Enjoy !
 
-[libcurl website] (http://curl.haxx.se/libcurl/)
+Best network lib out there:
+[libcurl] (http://curl.haxx.se/libcurl/)
 
-TODO: 
------
-* fix weird bug when piping stuff in without args.
+You can contact me at freezeeedos@gmail.com
+
+Hosted on [github] (https://github.com/freezeeedos/dlmanagerC)
