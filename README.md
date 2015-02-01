@@ -27,9 +27,8 @@ You will need the GNU C COMPILER.
 * './build.sh'
 * Enjoy !
 
-Best network lib out there:
-[libcurl] (http://curl.haxx.se/libcurl/)
+Best network lib out there: [libcurl](http://curl.haxx.se/libcurl/)
 
 You can contact me at freezeeedos@gmail.com
 
-Hosted on [github] (https://github.com/freezeeedos/dlmanagerC)
+Hosted on [github](https://github.com/freezeeedos/dlmanagerC)
