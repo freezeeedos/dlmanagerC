@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <libgen.h>
 #include <sys/wait.h>
+#include <time.h>
 
 #include <curl/curl.h>
 
@@ -55,8 +56,8 @@ static size_t write_data(void *ptr,
                          size_t size, 
                          size_t nmemb, void *stream);
 static int progress(struct myprogress *prog,
-                    double dltotal, double dlnow,
-                    double ultotal, double ulnow);
+                    curl_off_t dltotal, curl_off_t dlnow,
+                    curl_off_t ultotal, curl_off_t ulnow);
 int getlist(const char *filename);
 int manage_ret(CURL *curl, int ret);
 int getlink(char *link, 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
     const char *listfilename;
 
     listfilename = ".dlmanagerlist";
-    if((argv[1]) && strcmp(argv[1], "-") == 0)
+    if((argc > 1) && strcmp(argv[1], "-") == 0)
     {
         listfilename = "usestdin";
     }
@@ -107,9 +108,11 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 }
 
 static int progress(struct myprogress *prog,
-            double dltotal, double dlnow,
-            double ultotal, double ulnow)
+            curl_off_t dltotal_i, curl_off_t dlnow_i,
+            curl_off_t ultotal_i, curl_off_t ulnow_i)
 {
+    double dltotal = (double)dltotal_i;
+    double dlnow = (double)dlnow_i;
     double kbnow = 0;
     double kbtotal = 0;
     double mbnow = 0;
@@ -154,7 +157,7 @@ static int progress(struct myprogress *prog,
 
     dlremaining = dltotal - dlnow;
     
-    if(rate > 0)
+    if((rate > 0) && (dlremaining > 0))
         eta = dlremaining / rate;
     
     eta_hour = (eta / 60) / 60;
@@ -206,9 +209,9 @@ static int progress(struct myprogress *prog,
         {
             if(rate < 1024)
                 fprintf(stdout, "%4d B/s", rate);
-            if(kbrate < 1024)
+            else if(rate < 1024 * 1024)
                 fprintf(stdout, "%4d kB/s", kbrate);
-            if(kbrate > 1024)
+            else
                 fprintf(stdout, "%5d mB/s", mbrate);
 
             fprintf(stdout, "    eta: ");
@@ -249,6 +252,12 @@ int getlist(const char *filename)
 
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
+    if(curl == NULL)
+    {
+        fprintf(stderr, "curl initialization failed\n");
+        fclose(listfile);
+        return -1;
+    }
 
     while(fgets(line, 1000, listfile) != NULL)
     {
@@ -272,7 +281,7 @@ int getlist(const char *filename)
             for(i++;i<NTRYMAX+1;i++)
             {
                 sleep(1);
-                fprintf(stderr, "[Try %d]\n", (i+1));
+                fprintf(stderr, "[Try %d]\n", i);
                 ret = getlink(url, curl, i);
                 if(ret == 0)
                 {
@@ -280,8 +289,8 @@ int getlist(const char *filename)
                 }
                 if((ret == -1) && (i == NTRYMAX))
                 {
-                    failed[fail].link = strdup(line);
-                    fail++;
+                    if(fail < 1000)
+                        failed[fail++].link = strdup(line);
                 }
             }
         }
@@ -292,7 +301,8 @@ int getlist(const char *filename)
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     fclose(listfile);
-    unlink(filename);
+    if(strcmp(filename, "usestdin") != 0)
+        unlink(filename);
     
     if(fail != 0)
     {
@@ -354,8 +364,9 @@ int manage_ret(CURL *curl, int ret)
         else
         {
             fprintf(stderr, "Something went wrong. libcurl returned %d\n"
-               "You should check the documentation of libcurl to see what this means...",
+               "You should check the documentation of libcurl to see what this means...\n",
                ret);
+            return -1;
         }
         fprintf(stderr, "\n");
         return 1;
@@ -370,22 +381,31 @@ int getlink(char *link, CURL *curl, int ntry)
     char *pagefilename;
     char *filename_clean;
     int ret;
-    long dlenght = 0;
+    curl_off_t dlenght = 0;
     curl_off_t existsize = 0;
     struct stat statbuf;
-    struct myprogress prog; 
-    
+    struct myprogress prog;
+    char urlcopy[1000];
+    char namebuf[1000];
+
     interv_count = 0;
 
-    pagefilename = basename(link);
-    filename_clean = curl_easy_unescape(curl, pagefilename, 0, 0);
+    snprintf(urlcopy, sizeof(urlcopy), "%s", link);
+    snprintf(namebuf, sizeof(namebuf), "%s", basename(urlcopy));
+    pagefilename = namebuf;
     pagefile = fopen("/dev/null", "w");
+    filename_clean = curl_easy_unescape(curl, pagefilename, 0, 0);
+    if(filename_clean == NULL)
+    {
+        fclose(pagefile);
+        return -1;
+    }
 
     if(ntry == 0)
         fprintf(stdout, "  => Getting '%s':\n", filename_clean);
 
 
-    curl_easy_setopt(curl, CURLOPT_URL, link);
+    curl_easy_setopt(curl, CURLOPT_URL, urlcopy);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
@@ -398,18 +418,27 @@ int getlink(char *link, CURL *curl, int ntry)
 //         printf("CURL: %d\n", ret);
     fclose(pagefile);
     
-    if(manage_ret(curl, ret) == 1)
+    ret = manage_ret(curl, ret);
+    if(ret == 1)
+    {
+        curl_free(filename_clean);
         return 0;
+    }
+    if(ret == -1)
+    {
+        curl_free(filename_clean);
+        return -1;
+    }
     
     curl_easy_reset(curl);
 //     prog->filename = pagefilename_clean;
     
-    if((stat(pagefilename, &statbuf) == 0))
+    if((stat(filename_clean, &statbuf) == 0))
     {
         existsize = statbuf.st_size;
-        float kbsize = statbuf.st_size / 1024;
-        float mbsize = kbsize / 1024;
-        float gbsize = mbsize / 1024;
+        float kbsize = statbuf.st_size / 1024.0f;
+        float mbsize = kbsize / 1024.0f;
+        float gbsize = mbsize / 1024.0f;
     
         pagefile = fopen(filename_clean, "a+");
         if(ntry == 0)
@@ -440,18 +469,23 @@ int getlink(char *link, CURL *curl, int ntry)
     curl_free(filename_clean);
     prog.startime = time(NULL);
     
-    curl_easy_setopt(curl, CURLOPT_URL, link);
+    curl_easy_setopt(curl, CURLOPT_URL, urlcopy);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress);
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, pagefile);
     
     curl_easy_setopt(curl, CURLOPT_RANGE, NULL);
+    if(pagefile == NULL)
+    {
+        perror("Could not create destination file");
+        return -1;
+    }
     ret = curl_easy_perform(curl);
-    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_UPLOAD, &dlenght);
+    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &dlenght);
 
     if((existsize > 0) && (dlenght == 0) && (ret == 33))
     {
@@ -509,10 +543,10 @@ int edit(const char *file)
             sprintf(my_cmd, "%s %s < /dev/tty 2>/dev/null", editors_a[i].editor, file);
         }
         retval = system(my_cmd);
-        if(retval == 0)
+        if(WEXITSTATUS(retval) == 0)
             break;
     }
-    if(retval != 0)
+    if(WEXITSTATUS(retval) != 0)
     {
         fprintf(stderr, "None of the text editors I tried seem to be installed on this system.\n"
         "Please install one of the following:\n" 
