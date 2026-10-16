@@ -3,7 +3,6 @@ Dlmanager
 Download manager written in C/LibCURL. It opens a file in a text editor, and downloads the links you paste in it.
 
 I won't try to make everything work right away, I use the program everyday, and do my best to fix problems as they come.
-If you like this program, feel free to report bugs at freezeeedos(at)gmail.com .
 
 Sample Output:
 
@@ -28,7 +27,5 @@ You will need the GNU C COMPILER.
 * Enjoy !
 
 Best network lib out there: [libcurl](http://curl.haxx.se/libcurl/)
-
-You can contact me at freezeeedos@gmail.com
 
 Hosted on [github](https://github.com/freezeeedos/dlmanagerC)
